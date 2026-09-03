@@ -25,7 +25,7 @@ To install this on any machine:
 
 ```bash
 # 1. Clone the repository
-git clone <your-repo-url> linkedin-mcp
+git clone https://github.com/DeepLearner7/linkedin-mcp.git
 cd linkedin-mcp
 
 # 2. Run the automated installer
