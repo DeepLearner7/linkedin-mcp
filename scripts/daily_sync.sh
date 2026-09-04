@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+# Ensure standard user PATH is present for cron environments
+export PATH="${HOME}/.gemini/antigravity-cli/bin:${HOME}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:${PATH:-}"
+
 # Dynamically resolve repository root and log path
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
