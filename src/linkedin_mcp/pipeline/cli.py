@@ -69,15 +69,15 @@ def main():
     parser.add_argument(
         "--limit",
         type=int,
-        default=10,
-        help="Max job board openings to fetch (default: 10)",
+        default=25,
+        help="Max job board openings to fetch per role/location query (default: 25)",
     )
     parser.add_argument(
         "--date-posted",
         type=str,
-        default="past-month",
+        default="past-week",
         choices=["past-24h", "past-week", "past-month"],
-        help="Time window filter (default: past-month)",
+        help="Time window filter (default: past-week [last 7 days])",
     )
     parser.add_argument(
         "--no-feed",

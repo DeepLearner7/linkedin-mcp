@@ -41,8 +41,8 @@ def _detect_workplace_type(text: str) -> WorkplaceType:
 async def run_job_sync(
     keywords: str = "Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead",
     location: str = "Pune, Bangalore",
-    limit: int = 10,
-    date_posted: str = "past-month",
+    limit: int = 25,
+    date_posted: str = "past-week",
     include_feed_posts: bool = True,
     source_name: str = "daily_orchestrator_sync",
 ) -> Dict[str, Any]:
@@ -129,7 +129,7 @@ async def run_job_sync(
                             raw_posts = await search_feed_posts(
                                 page=page,
                                 keywords=post_query,
-                                limit=8,
+                                limit=15,
                                 sort_by="date_posted",
                                 date_posted="past-week",
                             )
