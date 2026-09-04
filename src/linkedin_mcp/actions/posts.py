@@ -52,12 +52,12 @@ async def search_feed_posts(
 
     logger.info("Navigating to LinkedIn post search: %s", url)
     await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-    await human_delay(2.5, 4.0)
+    await human_delay(1.5, 2.2)
 
     # Scroll down to trigger lazy loaded cards
     for _ in range(3):
         await page.evaluate("window.scrollBy(0, window.innerHeight * 1.5)")
-        await human_delay(1.5, 2.5)
+        await human_delay(0.8, 1.2)
 
     html = await page.content()
     soup = BeautifulSoup(html, "html.parser")

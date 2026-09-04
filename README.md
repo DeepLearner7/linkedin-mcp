@@ -178,9 +178,9 @@ tail -f ~/.config/linkedin-mcp/sync.log
 ```bash
 ./scripts/daily_sync.sh
 ```
-Or directly from your shell:
 ```bash
-agy -p "Run daily sync: Search LinkedIn for all recent job openings and recruiter posts strictly within the last 7 days (date_posted: 'past-week', sort_by: 'date_posted') matching target roles ('Senior Data Engineer', 'Senior Data Platform Engineer', 'Data Engineering Lead') across locations 'Pune' and 'Bangalore'. Exhaustively retrieve all matching results across both the Job Board (paginating through all available listings for the past week) and Recruiter Feed Posts without truncating early. Filter out non-hiring noise and candidate self-promotions (#opentowork), parse and normalize each verified hiring opening into the deterministic schema, extract full tech stack skills, and save them into SQLite using linkedin_save_parsed_jobs. Provide a comprehensive summary of all newly added and updated jobs grouped by role and location." --dangerously-skip-permissions
+# Generate daily executive briefing on latest synced jobs
+agy -p "Analyze the latest LinkedIn job sync results stored in ~/.config/linkedin-mcp/latest_sync_report.md and generate an executive briefing." --dangerously-skip-permissions
 ```
 
 #### Using the Fast Global CLI (`linkedin-jobs`):

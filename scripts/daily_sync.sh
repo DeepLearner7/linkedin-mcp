@@ -27,22 +27,47 @@ if [[ -z "${AGY_BIN}" || ! -x "${AGY_BIN}" ]]; then
     exit 1
 fi
 
+# Locate Python / linkedin-jobs binary in virtual environment
+PYTHON_BIN="${REPO_DIR}/.venv/bin/python"
+if [[ ! -x "${PYTHON_BIN}" ]]; then
+    PYTHON_BIN="$(command -v python3 || true)"
+fi
+
 mkdir -p "${DATA_DIR}"
 cd "${REPO_DIR}"
 
 HEADER="========================================================\n[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Starting Daily LinkedIn Job Sync\nRunning in: ${REPO_DIR}\nLog file:   ${LOG_FILE}\n========================================================"
 
-SYNC_PROMPT="Run daily sync: Search LinkedIn for all recent job openings and recruiter posts strictly within the last 7 days (date_posted: 'past-week', sort_by: 'date_posted') matching target roles ('Senior Data Engineer', 'Senior Data Platform Engineer', 'Data Engineering Lead') across locations 'Pune' and 'Bangalore'. Exhaustively retrieve all matching results across both the Job Board (paginating through all available listings for the past week) and Recruiter Feed Posts without truncating early. Filter out non-hiring noise and candidate self-promotions (#opentowork), parse and normalize each verified hiring opening into the deterministic schema, extract full tech stack skills, and save them into SQLite using linkedin_save_parsed_jobs. Provide a comprehensive summary of all newly added and updated jobs grouped by role and location."
+REPORT_FILE="${DATA_DIR}/latest_sync_report.md"
+
+run_sync() {
+    echo "==> [Stage 1/2] Fetching LinkedIn jobs via Boolean OR pipeline (Pune & Bangalore, past 7 days)..."
+    "${PYTHON_BIN}" -m linkedin_mcp.pipeline.cli \
+        --keywords "Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead" \
+        --location "Pune, Bangalore" \
+        --date-posted "past-week" \
+        --limit 25 \
+        --export markdown \
+        --output "${REPORT_FILE}"
+
+    if [[ -n "${AGY_BIN}" && -x "${AGY_BIN}" ]]; then
+        echo -e "\n==> [Stage 2/2] Generating Antigravity AI Executive Briefing from stored jobs..."
+        AGY_PROMPT="Analyze the latest LinkedIn job sync results stored in ${REPORT_FILE}. Produce a concise Executive Briefing for a Senior Data Engineering / Platform / Lead candidate in Pune & Bangalore:
+1. Top high-signal job openings (company, role, location, easy-apply or recruiter link).
+2. Key in-demand technical stack patterns (e.g., Spark, Kafka, Databricks, Snowflake, Cloud).
+3. Direct recruiter contact leads (names, profiles, emails if available)."
+        "${AGY_BIN}" -p "${AGY_PROMPT}" --dangerously-skip-permissions
+    fi
+}
 
 if [[ -t 1 ]]; then
     # Interactive terminal: stream live output to terminal AND save to log file
     echo -e "${HEADER}" | tee -a "${LOG_FILE}"
-    echo "Running headless Antigravity sync (this takes 1-2 minutes to search and parse LinkedIn)..."
-    "${AGY_BIN}" -p "${SYNC_PROMPT}" --dangerously-skip-permissions 2>&1 | tee -a "${LOG_FILE}"
+    run_sync 2>&1 | tee -a "${LOG_FILE}"
     echo -e "\n[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Finished Daily LinkedIn Job Sync successfully.\n========================================================" | tee -a "${LOG_FILE}"
 else
     # Non-interactive / cron daemon mode: silently append everything to log file
     echo -e "${HEADER}" >> "${LOG_FILE}"
-    "${AGY_BIN}" -p "${SYNC_PROMPT}" --dangerously-skip-permissions >> "${LOG_FILE}" 2>&1
+    run_sync >> "${LOG_FILE}" 2>&1
     echo -e "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Finished Daily LinkedIn Job Sync successfully.\n========================================================" >> "${LOG_FILE}"
 fi

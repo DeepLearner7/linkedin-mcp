@@ -173,10 +173,10 @@ async def search_job_board(
 
         logger.info("Navigating to LinkedIn job search: %s", url)
         await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-        await human_delay(2.5, 3.5)
+        await human_delay(1.2, 2.0)
 
         # Scroll down list pane to load cards
-        for _ in range(4):
+        for _ in range(3):
             await page.evaluate("""
                 () => {
                     const el = document.querySelector('.jobs-search-results-list') ||
@@ -185,7 +185,7 @@ async def search_job_board(
                     el.scrollBy(0, 1000);
                 }
             """)
-            await human_delay(0.8, 1.4)
+            await human_delay(0.5, 0.9)
 
         html = await page.content()
         soup = BeautifulSoup(html, "html.parser")
