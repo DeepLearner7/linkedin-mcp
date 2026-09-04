@@ -49,6 +49,14 @@ def test_is_likely_hiring_post_positive():
     is_hiring, reason = is_likely_hiring_post(hiring_text)
     assert is_hiring is True
 
+    platform_text = "Looking for a Senior Data Platform Engineer in Bangalore. Experience with Kubernetes, Kafka, and Snowflake. Send CV to hr@clouddata.io"
+    is_hiring_p, _ = is_likely_hiring_post(platform_text)
+    assert is_hiring_p is True
+
+    lead_text = "Job Alert: Data Engineering Lead in Bengaluru! 10+ years experience building data architectures. Apply at careers@tech.com"
+    is_hiring_l, _ = is_likely_hiring_post(lead_text)
+    assert is_hiring_l is True
+
 
 def test_is_likely_hiring_post_negative():
     candidate_text = "I'm excited to share that I've joined Google as a Senior Data Engineer! Looking forward to this new chapter. #opentowork"

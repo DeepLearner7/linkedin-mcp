@@ -3,7 +3,13 @@ Tests for SQLite repository, schema DDL, upserts, queries, and analytics.
 """
 
 from pathlib import Path
-import pytest
+import tempfile
+
+try:
+    import pytest
+except ImportError:
+    pytest = None
+
 from linkedin_mcp.db.schema import DeterministicJobSchema, JobQueryParams, WorkplaceType, SourceType
 from linkedin_mcp.db.repository import (
     upsert_job,
@@ -13,9 +19,12 @@ from linkedin_mcp.db.repository import (
 )
 
 
-@pytest.fixture
-def test_db_path(tmp_path: Path) -> Path:
-    return tmp_path / "test_jobs.db"
+if pytest:
+    @pytest.fixture
+    def test_db_path(tmp_path: Path) -> Path:
+        return tmp_path / "test_jobs.db"
+else:
+    test_db_path = None
 
 
 def test_upsert_single_job_and_idempotency(test_db_path: Path):
@@ -104,3 +113,12 @@ def test_bulk_upsert_and_skill_filtering(test_db_path: Path):
     assert stats["job_board_jobs"] == 1
     assert stats["feed_post_jobs"] == 1
     assert any(s["skill"] == "Databricks" for s in stats["top_skills"])
+
+
+if __name__ == "__main__":
+    with tempfile.TemporaryDirectory() as td:
+        p1 = Path(td) / "test1.db"
+        test_upsert_single_job_and_idempotency(p1)
+        p2 = Path(td) / "test2.db"
+        test_bulk_upsert_and_skill_filtering(p2)
+    print("All DB repository tests passed!")

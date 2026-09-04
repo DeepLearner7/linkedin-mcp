@@ -57,14 +57,14 @@ def main():
     parser.add_argument(
         "--keywords",
         type=str,
-        default="Senior Data Engineer",
-        help="Job search query terms (default: 'Senior Data Engineer')",
+        default="Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead",
+        help="Job search query terms (comma-separated for multiple roles; default: 'Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead')",
     )
     parser.add_argument(
         "--location",
         type=str,
-        default="Pune",
-        help="Target location (default: 'Pune')",
+        default="Pune, Bangalore",
+        help="Target locations (comma-separated for multiple cities; default: 'Pune, Bangalore')",
     )
     parser.add_argument(
         "--limit",
@@ -145,7 +145,7 @@ def main():
             limit=args.limit,
             date_posted=args.date_posted,
             include_feed_posts=not args.no_feed,
-            source_name=f"cli_sync_{args.location.lower()}",
+            source_name="cli_sync",
         )
     )
 

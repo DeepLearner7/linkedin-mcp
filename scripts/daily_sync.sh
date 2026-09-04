@@ -32,7 +32,7 @@ cd "${REPO_DIR}"
 
 HEADER="========================================================\n[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Starting Daily LinkedIn Job Sync\nRunning in: ${REPO_DIR}\nLog file:   ${LOG_FILE}\n========================================================"
 
-SYNC_PROMPT="Run daily sync: Search LinkedIn for recent openings (past-24h to past-week) matching 'Senior Data Engineer' in 'Pune' on both the Job Board and Feed Posts. Filter out non-hiring noise, parse and normalize each relevant hiring opening into the deterministic schema, and save them using linkedin_save_parsed_jobs. Provide a concise summary of newly added and updated jobs."
+SYNC_PROMPT="Run daily sync: Search LinkedIn for recent openings (past-24h to past-week) matching target roles ('Senior Data Engineer', 'Senior Data Platform Engineer', 'Data Engineering Lead') across locations 'Pune' and 'Bangalore' on both the Job Board and Recruiter Feed Posts. Filter out non-hiring noise and candidate self-promotions, parse and normalize each relevant hiring opening into the deterministic schema, extract tech stack skills, and save them using linkedin_save_parsed_jobs. Provide a concise summary of newly added and updated jobs grouped by role and location."
 
 if [[ -t 1 ]]; then
     # Interactive terminal: stream live output to terminal AND save to log file

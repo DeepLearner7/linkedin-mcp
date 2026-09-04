@@ -61,7 +61,9 @@ NEGATIVE_TRIGGERS = [
 POSITIVE_TRIGGERS = [
     "we are hiring", "we're hiring", "our team is hiring", "urgent requirement",
     "immediate opening", "job alert", "looking for a senior data engineer",
-    "looking for senior data engineer", "hiring for", "send your resume",
+    "looking for senior data engineer", "looking for data platform engineer",
+    "looking for a data platform engineer", "looking for data engineering lead",
+    "looking for a data engineering lead", "hiring for", "send your resume",
     "share your cv", "send cv to", "share resume to", "apply here",
     "apply at", "open positions", "join our team",
 ]
@@ -142,8 +144,13 @@ def is_likely_hiring_post(text: str) -> Tuple[bool, str]:
         if pos in lower:
             return True, f"Matches hiring trigger: '{pos}'"
 
-    # Secondary heuristic: mentions 'data engineer' and ('apply' or 'email' or 'experience')
-    if "data engineer" in lower and any(w in lower for w in ["experience", "location", "apply", "contact", "pune", "salary"]):
-        return True, "Contextual match for Data Engineer role announcement"
+    # Secondary heuristic: mentions data engineering / platform role terms and hiring context words
+    role_terms = ["data engineer", "data engineering", "data platform"]
+    context_words = [
+        "experience", "location", "apply", "contact", "pune", "bangalore", "bengaluru",
+        "salary", "lead", "hybrid", "remote", "onsite", "resumes", "cv"
+    ]
+    if any(r in lower for r in role_terms) and any(w in lower for w in context_words):
+        return True, "Contextual match for Data Engineering / Platform role announcement"
 
     return False, "No strong hiring signals found"

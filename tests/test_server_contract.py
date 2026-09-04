@@ -2,7 +2,13 @@
 Unit tests for MCP server tool registration and validation.
 """
 
-import pytest
+import asyncio
+
+try:
+    import pytest
+except ImportError:
+    pytest = None
+
 from linkedin_mcp.server import app, linkedin_create_post
 
 
@@ -32,7 +38,14 @@ def test_registered_tools():
         assert tool_name in registered_tool_names, f"Expected tool {tool_name} to be registered"
 
 
-@pytest.mark.asyncio
+if pytest:
+    async_mark = pytest.mark.asyncio
+else:
+    def async_mark(f):
+        return f
+
+
+@async_mark
 async def test_create_post_empty_validation():
     res = await linkedin_create_post("")
     assert "Error: Post content cannot be empty" in res
@@ -71,4 +84,11 @@ def test_db_tools_execution():
     stats_result = linkedin_get_db_stats()
     assert "LinkedIn Job Storage Statistics" in stats_result
     assert "Total Stored Jobs:" in stats_result
+
+
+if __name__ == "__main__":
+    test_registered_tools()
+    asyncio.run(test_create_post_empty_validation())
+    test_db_tools_execution()
+    print("All server contract tests passed!")
 

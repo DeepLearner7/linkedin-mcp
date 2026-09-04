@@ -39,20 +39,21 @@ def _detect_workplace_type(text: str) -> WorkplaceType:
 
 
 async def run_job_sync(
-    keywords: str = "Senior Data Engineer",
-    location: str = "Pune",
-    limit: int = 15,
+    keywords: str = "Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead",
+    location: str = "Pune, Bangalore",
+    limit: int = 10,
     date_posted: str = "past-month",
     include_feed_posts: bool = True,
     source_name: str = "daily_orchestrator_sync",
 ) -> Dict[str, Any]:
     """
     Orchestrate scraping both Job Board and Feed Posts, normalize schema, and save to SQLite.
+    Supports comma-separated keywords and locations.
 
     Args:
-        keywords: Job search keywords (e.g. 'Senior Data Engineer').
-        location: City location (e.g. 'Pune').
-        limit: Number of job board results to search.
+        keywords: Job search keywords or comma-separated roles (e.g. 'Senior Data Engineer, Data Engineering Lead').
+        location: City location or comma-separated locations (e.g. 'Pune, Bangalore').
+        limit: Number of job board results to search per role/location query.
         date_posted: Date window ('past-24h', 'past-week', 'past-month').
         include_feed_posts: Whether to also search recruiter feed posts.
         source_name: Audit tag for sync run.
@@ -63,113 +64,131 @@ async def run_job_sync(
     if not has_saved_session():
         raise RuntimeError("No saved LinkedIn browser session found. Run `python login.py` to authenticate.")
 
+    keyword_list = [k.strip() for k in keywords.split(",") if k.strip()]
+    location_list = [l.strip() for l in location.split(",") if l.strip()]
+
     parsed_jobs: List[DeterministicJobSchema] = []
+    seen_job_ids = set()
 
     async with async_playwright() as p:
         browser, context = await launch_stealth_context(p, headless=True)
         page = await context.new_page()
 
         try:
-            # 1. Scrape Job Board
-            logger.info("Searching Job Board for '%s' in '%s'...", keywords, location)
-            raw_job_cards = await search_job_board(
-                page=page,
-                keywords=f'"{keywords}"',
-                location=location,
-                limit=limit,
-                sort_by="date_posted",
-                date_posted=date_posted,
-            )
+            for kw in keyword_list:
+                for loc in location_list:
+                    # 1. Scrape Job Board
+                    logger.info("Searching Job Board for '%s' in '%s'...", kw, loc)
+                    try:
+                        raw_job_cards = await search_job_board(
+                            page=page,
+                            keywords=f'"{kw}"',
+                            location=loc,
+                            limit=limit,
+                            sort_by="date_posted",
+                            date_posted=date_posted,
+                        )
 
-            for item in raw_job_cards:
-                job_url = item.get("job_url", "")
-                title = item.get("title", "")
-                company = item.get("company", "")
-                job_id = generate_job_id(SourceType.JOB_BOARD, job_url, title, company)
-                workplace = _detect_workplace_type(item.get("location", ""))
-                skills = match_tech_stack(title + " " + item.get("footer_status", ""))
+                        for item in raw_job_cards:
+                            job_url = item.get("job_url", "")
+                            title = item.get("title", "")
+                            company = item.get("company", "")
+                            job_id = generate_job_id(SourceType.JOB_BOARD, job_url, title, company)
+                            if job_id in seen_job_ids:
+                                continue
+                            seen_job_ids.add(job_id)
 
-                job_obj = DeterministicJobSchema(
-                    job_id=job_id,
-                    source_type=SourceType.JOB_BOARD,
-                    source_url=job_url,
-                    title=title,
-                    company=company,
-                    location=item.get("location", location),
-                    workplace_type=workplace,
-                    tech_stack=skills,
-                    is_easy_apply=bool(item.get("is_easy_apply", False)),
-                    is_hiring_confirmed=True,
-                    relevance_score=1.0,
-                    posted_relative=item.get("footer_status", "recently"),
-                    description_summary=f"{title} position at {company} in {item.get('location', location)}.",
-                    raw_text=f"Title: {title} | Company: {company} | Location: {item.get('location', '')} | Status: {item.get('footer_status', '')}",
-                )
-                parsed_jobs.append(job_obj)
+                            workplace = _detect_workplace_type(item.get("location", ""))
+                            skills = match_tech_stack(title + " " + item.get("footer_status", ""))
 
-            # 2. Scrape Recruiter Feed Posts
-            if include_feed_posts:
-                post_query = f"hiring {keywords} {location}"
-                logger.info("Searching Feed Posts for '%s'...", post_query)
-                raw_posts = await search_feed_posts(
-                    page=page,
-                    keywords=post_query,
-                    limit=8,
-                    sort_by="date_posted",
-                    date_posted="past-week",
-                )
+                            job_obj = DeterministicJobSchema(
+                                job_id=job_id,
+                                source_type=SourceType.JOB_BOARD,
+                                source_url=job_url,
+                                title=title,
+                                company=company,
+                                location=item.get("location", loc),
+                                workplace_type=workplace,
+                                tech_stack=skills,
+                                is_easy_apply=bool(item.get("is_easy_apply", False)),
+                                is_hiring_confirmed=True,
+                                relevance_score=1.0,
+                                posted_relative=item.get("footer_status", "recently"),
+                                description_summary=f"{title} position at {company} in {item.get('location', loc)}.",
+                                raw_text=f"Title: {title} | Company: {company} | Location: {item.get('location', '')} | Status: {item.get('footer_status', '')}",
+                            )
+                            parsed_jobs.append(job_obj)
+                    except Exception as e:
+                        logger.warning("Error scraping Job Board for '%s' in '%s': %s", kw, loc, e)
 
-                for post in raw_posts:
-                    text = post.get("text", "")
-                    is_hiring, reason = is_likely_hiring_post(text)
-                    if not is_hiring:
-                        logger.debug("Skipping non-hiring post from %s: %s", post.get("author_name"), reason)
-                        continue
+                    # 2. Scrape Recruiter Feed Posts
+                    if include_feed_posts:
+                        post_query = f"hiring {kw} {loc}"
+                        logger.info("Searching Feed Posts for '%s'...", post_query)
+                        try:
+                            raw_posts = await search_feed_posts(
+                                page=page,
+                                keywords=post_query,
+                                limit=8,
+                                sort_by="date_posted",
+                                date_posted="past-week",
+                            )
 
-                    post_url = post.get("post_url", "")
-                    author = post.get("author_name", "Recruiter")
-                    author_url = post.get("author_url", "")
-                    headline = post.get("headline", "")
+                            for post in raw_posts:
+                                text = post.get("text", "")
+                                is_hiring, reason = is_likely_hiring_post(text)
+                                if not is_hiring:
+                                    logger.debug("Skipping non-hiring post from %s: %s", post.get("author_name"), reason)
+                                    continue
 
-                    post_id = generate_job_id(SourceType.FEED_POST, post_url, keywords, author)
-                    emails = extract_emails(text)
-                    urls = extract_urls(text)
-                    skills = match_tech_stack(text)
-                    exp_years = extract_experience_years(text)
-                    workplace = _detect_workplace_type(text)
+                                post_url = post.get("post_url", "")
+                                author = post.get("author_name", "Recruiter")
+                                author_url = post.get("author_url", "")
+                                headline = post.get("headline", "")
 
-                    # Extract recruiter email / apply URL
-                    recruiter_email = emails[0] if emails else None
-                    apply_url = urls[0] if urls else None
+                                post_id = generate_job_id(SourceType.FEED_POST, post_url, kw, author)
+                                if post_id in seen_job_ids:
+                                    continue
+                                seen_job_ids.add(post_id)
 
-                    # Extract company name from headline or text if possible
-                    company_guess = "LinkedIn Recruiter / Stealth"
-                    if " at " in headline:
-                        company_guess = headline.split(" at ")[-1].split("|")[0].strip()
-                    elif "@" in headline:
-                        company_guess = headline.split("@")[-1].split("|")[0].strip()
+                                emails = extract_emails(text)
+                                urls = extract_urls(text)
+                                skills = match_tech_stack(text)
+                                exp_years = extract_experience_years(text)
+                                workplace = _detect_workplace_type(text)
 
-                    post_obj = DeterministicJobSchema(
-                        job_id=post_id,
-                        source_type=SourceType.FEED_POST,
-                        source_url=post_url or author_url,
-                        title=f"{keywords} (Recruiter Post)",
-                        company=company_guess,
-                        location=location,
-                        workplace_type=workplace,
-                        experience_min_years=exp_years,
-                        tech_stack=skills,
-                        description_summary=text[:250].strip() + ("..." if len(text) > 250 else ""),
-                        raw_text=text,
-                        hiring_contact_name=author,
-                        hiring_contact_profile=author_url,
-                        hiring_contact_email=recruiter_email,
-                        application_url=apply_url,
-                        is_hiring_confirmed=True,
-                        relevance_score=0.9,
-                        posted_relative="recent feed post",
-                    )
-                    parsed_jobs.append(post_obj)
+                                recruiter_email = emails[0] if emails else None
+                                apply_url = urls[0] if urls else None
+
+                                company_guess = "LinkedIn Recruiter / Stealth"
+                                if " at " in headline:
+                                    company_guess = headline.split(" at ")[-1].split("|")[0].strip()
+                                elif "@" in headline:
+                                    company_guess = headline.split("@")[-1].split("|")[0].strip()
+
+                                post_obj = DeterministicJobSchema(
+                                    job_id=post_id,
+                                    source_type=SourceType.FEED_POST,
+                                    source_url=post_url or author_url,
+                                    title=f"{kw} (Recruiter Post)",
+                                    company=company_guess,
+                                    location=loc,
+                                    workplace_type=workplace,
+                                    experience_min_years=exp_years,
+                                    tech_stack=skills,
+                                    description_summary=text[:250].strip() + ("..." if len(text) > 250 else ""),
+                                    raw_text=text,
+                                    hiring_contact_name=author,
+                                    hiring_contact_profile=author_url,
+                                    hiring_contact_email=recruiter_email,
+                                    application_url=apply_url,
+                                    is_hiring_confirmed=True,
+                                    relevance_score=0.9,
+                                    posted_relative="recent feed post",
+                                )
+                                parsed_jobs.append(post_obj)
+                        except Exception as e:
+                            logger.warning("Error scraping Feed Posts for '%s': %s", post_query, e)
 
         finally:
             await browser.close()

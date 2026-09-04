@@ -104,7 +104,7 @@ The server checks for `.env` in:
     - *"Check linkedin_status to see if my connection is working."*
     - *"Fetch my linkedin profile details."*
     - *"Draft and post a LinkedIn update announcing our new MCP server."*
-    - *"Sync today's Senior Data Engineer openings in Pune and save them to the database."*
+    - *"Sync recent Senior Data Engineer, Senior Data Platform Engineer, and Data Engineering Lead openings in Pune and Bangalore to the database."*
     - *"Query stored jobs from the database that require Spark and Kafka."*
 
 ---
@@ -180,16 +180,16 @@ tail -f ~/.config/linkedin-mcp/sync.log
 ```
 Or directly from your shell:
 ```bash
-agy -p "Run daily sync: Search LinkedIn for recent openings matching 'Senior Data Engineer' in 'Pune' on both the Job Board and Feed Posts. Filter out non-hiring noise, parse and normalize each relevant opening into the deterministic schema, and save them using linkedin_save_parsed_jobs. Report the total inserted and updated." --dangerously-skip-permissions
+agy -p "Run daily sync: Search LinkedIn for recent openings (past-24h to past-week) matching target roles ('Senior Data Engineer', 'Senior Data Platform Engineer', 'Data Engineering Lead') across locations 'Pune' and 'Bangalore' on both the Job Board and Recruiter Feed Posts. Filter out non-hiring noise and candidate self-promotions, parse and normalize each relevant hiring opening into the deterministic schema, extract tech stack skills, and save them using linkedin_save_parsed_jobs. Provide a concise summary of newly added and updated jobs grouped by role and location." --dangerously-skip-permissions
 ```
 
 #### Using the Fast Global CLI (`linkedin-jobs`):
 ```bash
-# Sync jobs and recruiter posts for Senior Data Engineer in Pune
-linkedin-jobs --keywords "Senior Data Engineer" --location "Pune" --limit 15
+# Sync jobs across default roles (Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead) in Pune & Bangalore
+linkedin-jobs
 
-# Export to a markdown report
-linkedin-jobs --keywords "Senior Data Engineer" --location "Pune" --export markdown --output daily_report.md
+# Or run with explicit filters and export to markdown
+linkedin-jobs --keywords "Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead" --location "Pune, Bangalore" --limit 10 --export markdown --output daily_report.md
 ```
 
 ---
