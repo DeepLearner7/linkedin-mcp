@@ -10,7 +10,7 @@ set -euo pipefail
 # Dynamically resolve repository root and log path
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-DATA_DIR="${REPO_DIR}/data"
+DATA_DIR="${HOME}/.config/linkedin-mcp"
 LOG_FILE="${DATA_DIR}/sync.log"
 
 # Locate Antigravity CLI binary (PATH or standard user home location)

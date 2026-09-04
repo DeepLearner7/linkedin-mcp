@@ -28,6 +28,7 @@ test = [
 
 [project.scripts]
 linkedin-mcp = "linkedin_mcp.server:main"
+linkedin-jobs = "linkedin_mcp.pipeline.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

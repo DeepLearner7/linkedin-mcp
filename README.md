@@ -118,28 +118,29 @@ Install the daily cron schedule (defaults to 9:00 AM every morning):
 ./scripts/setup_cron.sh --install
 ```
 
-### 2. Manual On-Demand Sync via CLI
+### 2. Manual On-Demand Sync via Global CLI (Run from ANY directory)
+After installing with `./install.sh`, the `linkedin-jobs` command is available globally system-wide:
 ```bash
 # Sync jobs and feed posts for Senior Data Engineer in Pune
-python -m linkedin_mcp.pipeline.cli --keywords "Senior Data Engineer" --location "Pune" --limit 15
+linkedin-jobs --keywords "Senior Data Engineer" --location "Pune" --limit 15
 
 # Export to a markdown report
-python -m linkedin_mcp.pipeline.cli --keywords "Senior Data Engineer" --location "Pune" --export markdown --output daily_report.md
+linkedin-jobs --keywords "Senior Data Engineer" --location "Pune" --export markdown --output daily_report.md
 ```
 
-### 3. Instant Local Querying (Zero Network Calls)
+### 3. Instant Local Querying (Zero Network Calls, from ANY directory)
 ```bash
 # Query stored openings by required skills
-python -m linkedin_mcp.pipeline.cli --skills "Spark, Kafka"
+linkedin-jobs --skills "Spark, Kafka"
 
 # Query by company or keyword
-python -m linkedin_mcp.pipeline.cli --query "Mastercard"
+linkedin-jobs --query "Mastercard"
 
 # View storage analytics and top in-demand skills
-python -m linkedin_mcp.pipeline.cli --stats
+linkedin-jobs --stats
 ```
 
-The database is stored locally at `data/linkedin_jobs.db` with SQLite WAL mode and automatic deduplication (`ON CONFLICT(job_id) DO UPDATE`).
+The database is stored centrally at `~/.config/linkedin-mcp/jobs.db` with SQLite WAL mode and automatic deduplication (`ON CONFLICT(job_id) DO UPDATE`).
 
 ## Local Development & Adding Tools
 

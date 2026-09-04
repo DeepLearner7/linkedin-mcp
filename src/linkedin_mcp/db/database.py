@@ -7,11 +7,15 @@ import sqlite3
 from pathlib import Path
 from typing import Optional
 
-# Default database location: <repo_root>/data/linkedin_jobs.db
-_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-DEFAULT_DB_PATH = Path(
-    os.getenv("LINKEDIN_JOBS_DB_PATH", str(_REPO_ROOT / "data" / "linkedin_jobs.db"))
-)
+# Default database location:
+# 1. LINKEDIN_JOBS_DB_PATH environment variable (if explicitly set)
+# 2. Global user config directory: ~/.config/linkedin-mcp/jobs.db (accessible from anywhere)
+def _resolve_default_db_path() -> Path:
+    if os.getenv("LINKEDIN_JOBS_DB_PATH"):
+        return Path(os.environ["LINKEDIN_JOBS_DB_PATH"])
+    return Path.home() / ".config" / "linkedin-mcp" / "jobs.db"
+
+DEFAULT_DB_PATH = _resolve_default_db_path()
 
 
 def get_db_path(custom_path: Optional[Path] = None) -> Path:

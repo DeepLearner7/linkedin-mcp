@@ -23,10 +23,13 @@ IS_WINDOWS = sys.platform.startswith("win")
 VENV_BIN = VENV_DIR / ("Scripts" if IS_WINDOWS else "bin")
 PYTHON_EXE = VENV_BIN / ("python.exe" if IS_WINDOWS else "python")
 LINKEDIN_EXE = VENV_BIN / ("linkedin-mcp.exe" if IS_WINDOWS else "linkedin-mcp")
+JOBS_CLI_EXE = VENV_BIN / ("linkedin-jobs.exe" if IS_WINDOWS else "linkedin-jobs")
 
 ANTIGRAVITY_CONFIG_DIR = Path.home() / ".gemini" / "config"
 ANTIGRAVITY_CONFIG_FILE = ANTIGRAVITY_CONFIG_DIR / "mcp_config.json"
 CLAUDE_CONFIG_FILE = Path.home() / ".claude.json"
+LOCAL_BIN_DIR = Path.home() / ".local" / "bin"
+GLOBAL_JOBS_CLI = LOCAL_BIN_DIR / ("linkedin-jobs.exe" if IS_WINDOWS else "linkedin-jobs")
 
 
 def run_command(cmd, cwd=REPO_ROOT):
@@ -51,6 +54,17 @@ def install_package():
     run_command([str(PYTHON_EXE), "-m", "pip", "install", "-e", "."])
     print("Ensuring Playwright Chromium browser is installed...")
     run_command([str(PYTHON_EXE), "-m", "playwright", "install", "chromium"])
+    
+    # Expose global `linkedin-jobs` CLI command in ~/.local/bin
+    if not IS_WINDOWS and JOBS_CLI_EXE.exists():
+        try:
+            LOCAL_BIN_DIR.mkdir(parents=True, exist_ok=True)
+            if GLOBAL_JOBS_CLI.is_symlink() or GLOBAL_JOBS_CLI.exists():
+                GLOBAL_JOBS_CLI.unlink()
+            GLOBAL_JOBS_CLI.symlink_to(JOBS_CLI_EXE)
+            print(f"Created global CLI shortcut: {GLOBAL_JOBS_CLI} -> {JOBS_CLI_EXE}")
+        except Exception as e:
+            print(f"Note: Could not symlink {GLOBAL_JOBS_CLI}: {e}")
 
 
 def setup_env_file():
@@ -121,6 +135,14 @@ def unregister():
                 print("Removed 'linkedin' from Claude config.")
         except Exception as e:
             print(f"Error removing from Claude config: {e}")
+
+    # Remove global CLI symlink
+    if not IS_WINDOWS and (GLOBAL_JOBS_CLI.is_symlink() or GLOBAL_JOBS_CLI.exists()):
+        try:
+            GLOBAL_JOBS_CLI.unlink()
+            print(f"Removed global CLI shortcut: {GLOBAL_JOBS_CLI}")
+        except Exception as e:
+            pass
 
 
 def register_claude():
