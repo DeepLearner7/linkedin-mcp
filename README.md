@@ -110,25 +110,91 @@ The server checks for `.env` in:
 
 ## Daily Job Scraping & Database Storage
 
-The system includes a daily scraping, deterministic schema extraction, and SQLite database storage pipeline for job board openings and recruiter feed posts:
+The system includes a daily scraping, deterministic schema extraction, and SQLite database storage pipeline for job board openings and recruiter feed posts. All data and sessions are stored centrally in `~/.config/linkedin-mcp/`, meaning you can run commands from **any directory** on your machine.
 
-### 1. Automated Daily Background Cron (Headless Antigravity)
-Install the daily cron schedule (defaults to 9:00 AM every morning):
+---
+
+### 1. Automated Daily Background Scheduling (Utilizing Antigravity AI)
+
+Every morning, headless Antigravity (`agy -p ... --dangerously-skip-permissions`) searches LinkedIn, applies semantic model reasoning to filter out non-hiring noise, extracts the deterministic schema, and upserts openings into the SQLite database.
+
+#### Method A: 1-Command Crontab Setup (Runs daily at 9:00 AM)
 ```bash
 ./scripts/setup_cron.sh --install
 ```
-
-### 2. Manual On-Demand Sync via Global CLI (Run from ANY directory)
-After installing with `./install.sh`, the `linkedin-jobs` command is available globally system-wide:
+To verify or inspect the crontab entry:
 ```bash
-# Sync jobs and feed posts for Senior Data Engineer in Pune
+crontab -l
+# 0 9 * * * /path/to/linkedin-mcp/scripts/daily_sync.sh
+```
+
+#### Method B: macOS `launchd` (Recommended for MacBooks that sleep)
+Standard `cron` may skip scheduled runs if your laptop lid is closed at 9:00 AM. A macOS `launchd` LaunchAgent catches up and runs automatically as soon as your Mac wakes up:
+
+```bash
+# 1. Create the LaunchAgent (run from the repository directory)
+cat << EOF > ~/Library/LaunchAgents/com.linkedin.mcp.sync.plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.linkedin.mcp.sync</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>${PWD}/scripts/daily_sync.sh</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>${HOME}/.config/linkedin-mcp/sync.log</string>
+    <key>StandardErrorPath</key>
+    <string>${HOME}/.config/linkedin-mcp/sync.log</string>
+</dict>
+</plist>
+EOF
+
+# 2. Load the agent
+launchctl load ~/Library/LaunchAgents/com.linkedin.mcp.sync.plist
+```
+
+#### Monitoring Background Logs:
+```bash
+tail -f ~/.config/linkedin-mcp/sync.log
+```
+
+---
+
+### 2. Manual On-Demand Execution (Run from ANY directory)
+
+#### Using Headless Antigravity AI (`agy`):
+```bash
+./scripts/daily_sync.sh
+```
+Or directly from your shell:
+```bash
+agy -p "Run daily sync: Search LinkedIn for recent openings matching 'Senior Data Engineer' in 'Pune' on both the Job Board and Feed Posts. Filter out non-hiring noise, parse and normalize each relevant opening into the deterministic schema, and save them using linkedin_save_parsed_jobs. Report the total inserted and updated." --dangerously-skip-permissions
+```
+
+#### Using the Fast Global CLI (`linkedin-jobs`):
+```bash
+# Sync jobs and recruiter posts for Senior Data Engineer in Pune
 linkedin-jobs --keywords "Senior Data Engineer" --location "Pune" --limit 15
 
 # Export to a markdown report
 linkedin-jobs --keywords "Senior Data Engineer" --location "Pune" --export markdown --output daily_report.md
 ```
 
+---
+
 ### 3. Instant Local Querying (Zero Network Calls, from ANY directory)
+
 ```bash
 # Query stored openings by required skills
 linkedin-jobs --skills "Spark, Kafka"
@@ -140,7 +206,21 @@ linkedin-jobs --query "Mastercard"
 linkedin-jobs --stats
 ```
 
-The database is stored centrally at `~/.config/linkedin-mcp/jobs.db` with SQLite WAL mode and automatic deduplication (`ON CONFLICT(job_id) DO UPDATE`).
+---
+
+### 4. Viewing Data in DBeaver / SQLite Viewers
+
+The centralized database is stored at:
+```text
+~/.config/linkedin-mcp/jobs.db
+```
+
+* **DBeaver**: Click **New Connection** > **SQLite** > set Path to `~/.config/linkedin-mcp/jobs.db`.
+* **Tables available**:
+  * `jobs`: Complete normalized job records, company, title, workplace type, and apply URLs.
+  * `job_skills`: Relational table indexed for skill lookups (e.g. all jobs requiring *Databricks*).
+  * `sync_runs`: Audit history of each scrape run.
+* **No Database Locking**: Configured with **SQLite WAL mode**, allowing simultaneous querying in DBeaver while background syncs write new jobs.
 
 ## Local Development & Adding Tools
 
