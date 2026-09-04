@@ -216,7 +216,9 @@ The centralized database is stored at:
 ~/.config/linkedin-mcp/jobs.db
 ```
 
-* **DBeaver**: Click **New Connection** > **SQLite** > set Path to `~/.config/linkedin-mcp/jobs.db`.
+* **DBeaver**: Click **New Connection** > **SQLite** > set Path to your **full absolute path** (DBeaver does not expand `~`):
+  * Path: `/Users/<your-username>/.config/linkedin-mcp/jobs.db` (e.g. `/Users/saurabh8141/.config/linkedin-mcp/jobs.db`)
+  * Alternatively, click **Browse...** (in macOS Finder dialog, press `Cmd + Shift + G` and paste the path, or `Cmd + Shift + .` to reveal hidden `.` folders).
 * **Tables available**:
   * `jobs`: Complete normalized job records, company, title, workplace type, and apply URLs.
   * `job_skills`: Relational table indexed for skill lookups (e.g. all jobs requiring *Databricks*).
