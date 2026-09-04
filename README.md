@@ -115,9 +115,29 @@ The system includes a daily scraping, deterministic schema extraction, and SQLit
 
 ---
 
-### 1. Automated Daily Background Scheduling (Utilizing Antigravity AI)
+### Architecture: 2-Stage Hybrid Pipeline
 
-Every morning, headless Antigravity (`agy -p ... --dangerously-skip-permissions`) searches LinkedIn, applies semantic model reasoning to filter out non-hiring noise, extracts the deterministic schema, and upserts openings into the SQLite database.
+To ensure **blazing speed (< 1.5 minutes)** without timeouts while maintaining **high-precision AI intelligence**, the daily sync uses a two-stage decoupled architecture:
+
+```mermaid
+flowchart LR
+    A["LinkedIn (Pune & Bangalore)"] -->|Stage 1: Fast Scraper| B["SQLite & latest_sync_report.md"]
+    B -->|Stage 2: Antigravity AI| C["Executive Briefing & Sourcing Plan"]
+```
+
+1. **Stage 1 (High-Recall Scraper - Fast & Deterministic):**
+   * Executes Boolean `OR` queries across target roles (`Senior Data Engineer`, `Senior Data Platform Engineer`, `Data Engineering Lead`) in `Pune` and `Bangalore` for the past 7 days (`past-week`).
+   * Fetches Job Board cards and Recruiter Feed Posts without LLM latency.
+   * Extracts tech stacks, extracts URLs/emails, dedupes, and commits to SQLite (`~/.config/linkedin-mcp/jobs.db`).
+2. **Stage 2 (High-Precision AI Briefing):**
+   * Antigravity AI (`agy`) reads the local synchronized dataset in milliseconds.
+   * Performs deep semantic reasoning: filters out false-positive noise, groups openings into Leadership vs Scaleup tracks, highlights in-demand streaming/lakehouse skills, and drafts direct recruiter outreach plans.
+
+---
+
+### 1. Automated Daily Background Scheduling
+
+The automated daily runner executes both Stage 1 and Stage 2 every morning.
 
 #### Method A: 1-Command Crontab Setup (Runs daily at 9:00 AM)
 ```bash
@@ -174,22 +194,24 @@ tail -f ~/.config/linkedin-mcp/sync.log
 
 ### 2. Manual On-Demand Execution (Run from ANY directory)
 
-#### Using Headless Antigravity AI (`agy`):
+#### End-to-End Daily Sync (Scrape + AI Executive Briefing):
 ```bash
 ./scripts/daily_sync.sh
 ```
-```bash
-# Generate daily executive briefing on latest synced jobs
-agy -p "Analyze the latest LinkedIn job sync results stored in ~/.config/linkedin-mcp/latest_sync_report.md and generate an executive briefing." --dangerously-skip-permissions
-```
 
-#### Using the Fast Global CLI (`linkedin-jobs`):
+#### Scraper Only via Global CLI (`linkedin-jobs`):
 ```bash
 # Sync all jobs across default roles in Pune & Bangalore for the past 7 days:
 linkedin-jobs
 
-# Or run with explicit filters and export to markdown
+# Or customize keywords, locations, limits, and export formats:
 linkedin-jobs --keywords "Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead" --location "Pune, Bangalore" --date-posted past-week --limit 50 --export markdown --output weekly_report.md
+```
+
+#### AI Executive Briefing Only:
+```bash
+# Generate daily executive briefing from the latest local sync report:
+agy -p "Analyze the latest LinkedIn job sync results stored in ~/.config/linkedin-mcp/latest_sync_report.md and generate an executive briefing." --dangerously-skip-permissions
 ```
 
 ---
