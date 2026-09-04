@@ -19,6 +19,15 @@ dist/
 # Environment and secrets
 .env
 .env.local
+session.json
+*.session.json
+
+# Local database & logs
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/*.log
+*.log
 
 # IDE & OS
 .DS_Store

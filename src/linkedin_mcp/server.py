@@ -31,6 +31,20 @@ from linkedin_mcp.actions.people import search_people, send_connection_request
 from linkedin_mcp.actions.jobs import search_job_board, get_job_details
 from linkedin_mcp.safety import get_safety_summary, get_safety_stats, check_action_allowed
 from linkedin_mcp.auth import run_interactive_login
+from linkedin_mcp.db.schema import (
+    DeterministicJobSchema,
+    JobQueryParams,
+    generate_job_id,
+    WorkplaceType,
+    SourceType,
+)
+from linkedin_mcp.db.repository import (
+    upsert_job,
+    bulk_upsert_jobs,
+    query_stored_jobs,
+    get_storage_stats,
+)
+from linkedin_mcp.db.database import DEFAULT_DB_PATH
 
 # Configure logging exclusively to stderr to avoid corrupting stdio JSON-RPC stream
 logging.basicConfig(
@@ -655,6 +669,173 @@ async def linkedin_get_job_details(job_identifier: str) -> str:
             return f"Error while fetching job details: {str(e)}"
         finally:
             await browser.close()
+
+
+@app.tool()
+def linkedin_save_parsed_jobs(jobs: Any, source_name: str = "daily_sync") -> str:
+    """Save a list of parsed and categorized jobs into the local SQLite database.
+    Each job is strictly validated against the DeterministicJobSchema and deduplicated
+    using its deterministic job_id. Existing jobs are updated with fresh metadata.
+
+    Args:
+        jobs: List of job objects (or JSON array string) conforming to DeterministicJobSchema.
+              Fields include: title, company, location, workplace_type, tech_stack,
+              source_type, source_url, experience_min_years, description_summary,
+              application_url, hiring_contact_email, relevance_score.
+        source_name: Identifier for the sync source (e.g. 'daily_sync', 'pune_feed_posts').
+    """
+    try:
+        raw_items = jobs
+        if isinstance(raw_items, str):
+            raw_items = json.loads(raw_items)
+        if isinstance(raw_items, dict):
+            raw_items = [raw_items]
+        if not isinstance(raw_items, list):
+            return "Error: 'jobs' must be a list of job objects or a JSON array string."
+
+        if not raw_items:
+            return "No jobs to save. Received empty list."
+
+        validated_jobs: List[DeterministicJobSchema] = []
+        for idx, item in enumerate(raw_items):
+            if not isinstance(item, dict):
+                continue
+            # Auto-generate deterministic job_id if not present
+            if not item.get("job_id"):
+                item["job_id"] = generate_job_id(
+                    source_type=item.get("source_type", "job_board"),
+                    source_url=item.get("source_url", ""),
+                    title=item.get("title", ""),
+                    company=item.get("company", ""),
+                )
+            try:
+                job_obj = DeterministicJobSchema(**item)
+                validated_jobs.append(job_obj)
+            except Exception as val_err:
+                logger.warning("Validation error on job item #%d: %s", idx, val_err)
+
+        if not validated_jobs:
+            return "Error: None of the provided job items passed schema validation."
+
+        summary = bulk_upsert_jobs(validated_jobs, source_name=source_name)
+
+        return (
+            "=== LinkedIn Job Storage Sync ===\n"
+            f"• Source Run: {source_name} (Run ID: {summary['run_id']})\n"
+            f"• Total Processed: {summary['total']}\n"
+            f"• Newly Inserted: {summary['inserted']}\n"
+            f"• Existing Updated: {summary['updated']}\n"
+            f"• Database Location: {DEFAULT_DB_PATH}\n"
+            "================================="
+        )
+    except Exception as e:
+        logger.error("Error saving parsed jobs: %s", e)
+        return f"Error saving parsed jobs to database: {str(e)}"
+
+
+@app.tool()
+def linkedin_query_stored_jobs(
+    keywords: Optional[str] = None,
+    skills: Optional[str] = None,
+    location: Optional[str] = None,
+    workplace_type: Optional[str] = None,
+    source_type: Optional[str] = None,
+    min_score: Optional[float] = None,
+    days_back: Optional[int] = None,
+    limit: int = 15,
+    offset: int = 0,
+) -> str:
+    """Query and filter stored job openings from the local SQLite database.
+    Requires no network requests.
+
+    Args:
+        keywords: Search term matching title, company, or description (e.g. 'Senior Data Engineer').
+        skills: Comma-separated list of required technologies (e.g. 'Spark, Databricks, Kafka').
+        location: Target location (e.g. 'Pune').
+        workplace_type: Filter by 'onsite', 'hybrid', 'remote', or 'all'.
+        source_type: Filter by 'job_board', 'feed_post', or 'all'.
+        min_score: Minimum relevance score from 0.0 to 1.0 (e.g. 0.8).
+        days_back: Only return jobs scraped within the past N days.
+        limit: Max jobs to return (default: 15).
+        offset: Pagination offset (default: 0).
+    """
+    try:
+        skill_list = [s.strip() for s in skills.split(",") if s.strip()] if skills else None
+        params = JobQueryParams(
+            keywords=keywords,
+            skills=skill_list,
+            location=location,
+            workplace_type=workplace_type,
+            source_type=source_type,
+            min_score=min_score,
+            days_back=days_back,
+            limit=limit,
+            offset=offset,
+        )
+
+        rows = query_stored_jobs(params)
+        if not rows:
+            return "No stored jobs found matching the specified query criteria."
+
+        output = [f"Found {len(rows)} stored job(s):\n"]
+        for idx, job in enumerate(rows, 1):
+            tech_str = ", ".join(job.get("tech_stack", [])) or "None specified"
+            output.append(f"--- Job {idx} ---")
+            output.append(f"Title: {job['title']}")
+            output.append(f"Company: {job['company']}")
+            output.append(f"Location: {job['location']} ({job['workplace_type']})")
+            output.append(f"Source: {job['source_type'].replace('_', ' ').title()}")
+            output.append(f"Tech Stack: {tech_str}")
+            if job.get("experience_min_years"):
+                output.append(f"Min Experience: {job['experience_min_years']}+ years")
+            if job.get("hiring_contact_email"):
+                output.append(f"Recruiter Email: {job['hiring_contact_email']}")
+            if job.get("application_url"):
+                output.append(f"Apply URL: {job['application_url']}")
+            if job.get("description_summary"):
+                output.append(f"Summary: {job['description_summary']}")
+            output.append(f"Source URL: {job['source_url']}\n")
+
+        return "\n".join(output)
+    except Exception as e:
+        logger.error("Error querying stored jobs: %s", e)
+        return f"Error querying database: {str(e)}"
+
+
+@app.tool()
+def linkedin_get_db_stats() -> str:
+    """Retrieve summary and analytical statistics of all jobs stored in the local database.
+    Includes total jobs count, source breakdown, top skills in demand, and latest sync run details.
+    """
+    try:
+        stats = get_storage_stats()
+        output = [
+            "=== LinkedIn Job Storage Statistics ===",
+            f"• Total Stored Jobs: {stats['total_jobs']}",
+            f"  - Official Job Board: {stats['job_board_jobs']}",
+            f"  - Recruiter Feed Posts: {stats['feed_post_jobs']}",
+        ]
+
+        if stats.get("top_skills"):
+            skills_str = ", ".join([f"{s['skill']} ({s['count']})" for s in stats["top_skills"][:8]])
+            output.append(f"• Top Skills in Demand: {skills_str}")
+
+        if stats.get("top_companies"):
+            comp_str = ", ".join([f"{c['company']} ({c['count']})" for c in stats["top_companies"][:6]])
+            output.append(f"• Top Companies Hiring: {comp_str}")
+
+        if stats.get("latest_sync_run"):
+            run = stats["latest_sync_run"]
+            output.append(
+                f"• Latest Sync: {run['run_at']} (Total: {run['total_scraped']}, "
+                f"New: {run['new_inserted']}, Updated: {run['updated']})"
+            )
+        output.append(f"• Database Path: {DEFAULT_DB_PATH}")
+        output.append("========================================")
+        return "\n".join(output)
+    except Exception as e:
+        logger.error("Error getting database stats: %s", e)
+        return f"Error retrieving database stats: {str(e)}"
 
 
 def main():

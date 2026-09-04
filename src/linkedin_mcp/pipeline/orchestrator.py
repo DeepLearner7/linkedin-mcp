@@ -1,0 +1,185 @@
+"""
+Orchestrator for automated scraping, filtering, and database synchronization of LinkedIn jobs.
+"""
+
+import logging
+from typing import Dict, Any, List, Optional
+from playwright.async_api import async_playwright
+
+from linkedin_mcp.browser import launch_stealth_context, has_saved_session
+from linkedin_mcp.actions.jobs import search_job_board
+from linkedin_mcp.actions.posts import search_feed_posts
+from linkedin_mcp.extractor.helpers import (
+    extract_emails,
+    extract_urls,
+    extract_experience_years,
+    match_tech_stack,
+    is_likely_hiring_post,
+)
+from linkedin_mcp.db.schema import (
+    DeterministicJobSchema,
+    WorkplaceType,
+    SourceType,
+    generate_job_id,
+)
+from linkedin_mcp.db.repository import bulk_upsert_jobs, get_storage_stats
+
+logger = logging.getLogger("linkedin-mcp.orchestrator")
+
+
+def _detect_workplace_type(text: str) -> WorkplaceType:
+    lower = text.lower()
+    if "remote" in lower:
+        return WorkplaceType.REMOTE
+    elif "hybrid" in lower:
+        return WorkplaceType.HYBRID
+    elif "on-site" in lower or "onsite" in lower:
+        return WorkplaceType.ONSITE
+    return WorkplaceType.UNSPECIFIED
+
+
+async def run_job_sync(
+    keywords: str = "Senior Data Engineer",
+    location: str = "Pune",
+    limit: int = 15,
+    date_posted: str = "past-month",
+    include_feed_posts: bool = True,
+    source_name: str = "daily_orchestrator_sync",
+) -> Dict[str, Any]:
+    """
+    Orchestrate scraping both Job Board and Feed Posts, normalize schema, and save to SQLite.
+
+    Args:
+        keywords: Job search keywords (e.g. 'Senior Data Engineer').
+        location: City location (e.g. 'Pune').
+        limit: Number of job board results to search.
+        date_posted: Date window ('past-24h', 'past-week', 'past-month').
+        include_feed_posts: Whether to also search recruiter feed posts.
+        source_name: Audit tag for sync run.
+
+    Returns:
+        Dict with sync stats and list of parsed jobs.
+    """
+    if not has_saved_session():
+        raise RuntimeError("No saved LinkedIn browser session found. Run `python login.py` to authenticate.")
+
+    parsed_jobs: List[DeterministicJobSchema] = []
+
+    async with async_playwright() as p:
+        browser, context = await launch_stealth_context(p, headless=True)
+        page = await context.new_page()
+
+        try:
+            # 1. Scrape Job Board
+            logger.info("Searching Job Board for '%s' in '%s'...", keywords, location)
+            raw_job_cards = await search_job_board(
+                page=page,
+                keywords=f'"{keywords}"',
+                location=location,
+                limit=limit,
+                sort_by="date_posted",
+                date_posted=date_posted,
+            )
+
+            for item in raw_job_cards:
+                job_url = item.get("job_url", "")
+                title = item.get("title", "")
+                company = item.get("company", "")
+                job_id = generate_job_id(SourceType.JOB_BOARD, job_url, title, company)
+                workplace = _detect_workplace_type(item.get("location", ""))
+                skills = match_tech_stack(title + " " + item.get("footer_status", ""))
+
+                job_obj = DeterministicJobSchema(
+                    job_id=job_id,
+                    source_type=SourceType.JOB_BOARD,
+                    source_url=job_url,
+                    title=title,
+                    company=company,
+                    location=item.get("location", location),
+                    workplace_type=workplace,
+                    tech_stack=skills,
+                    is_easy_apply=bool(item.get("is_easy_apply", False)),
+                    is_hiring_confirmed=True,
+                    relevance_score=1.0,
+                    posted_relative=item.get("footer_status", "recently"),
+                    description_summary=f"{title} position at {company} in {item.get('location', location)}.",
+                    raw_text=f"Title: {title} | Company: {company} | Location: {item.get('location', '')} | Status: {item.get('footer_status', '')}",
+                )
+                parsed_jobs.append(job_obj)
+
+            # 2. Scrape Recruiter Feed Posts
+            if include_feed_posts:
+                post_query = f"hiring {keywords} {location}"
+                logger.info("Searching Feed Posts for '%s'...", post_query)
+                raw_posts = await search_feed_posts(
+                    page=page,
+                    keywords=post_query,
+                    limit=8,
+                    sort_by="date_posted",
+                    date_posted="past-week",
+                )
+
+                for post in raw_posts:
+                    text = post.get("text", "")
+                    is_hiring, reason = is_likely_hiring_post(text)
+                    if not is_hiring:
+                        logger.debug("Skipping non-hiring post from %s: %s", post.get("author_name"), reason)
+                        continue
+
+                    post_url = post.get("post_url", "")
+                    author = post.get("author_name", "Recruiter")
+                    author_url = post.get("author_url", "")
+                    headline = post.get("headline", "")
+
+                    post_id = generate_job_id(SourceType.FEED_POST, post_url, keywords, author)
+                    emails = extract_emails(text)
+                    urls = extract_urls(text)
+                    skills = match_tech_stack(text)
+                    exp_years = extract_experience_years(text)
+                    workplace = _detect_workplace_type(text)
+
+                    # Extract recruiter email / apply URL
+                    recruiter_email = emails[0] if emails else None
+                    apply_url = urls[0] if urls else None
+
+                    # Extract company name from headline or text if possible
+                    company_guess = "LinkedIn Recruiter / Stealth"
+                    if " at " in headline:
+                        company_guess = headline.split(" at ")[-1].split("|")[0].strip()
+                    elif "@" in headline:
+                        company_guess = headline.split("@")[-1].split("|")[0].strip()
+
+                    post_obj = DeterministicJobSchema(
+                        job_id=post_id,
+                        source_type=SourceType.FEED_POST,
+                        source_url=post_url or author_url,
+                        title=f"{keywords} (Recruiter Post)",
+                        company=company_guess,
+                        location=location,
+                        workplace_type=workplace,
+                        experience_min_years=exp_years,
+                        tech_stack=skills,
+                        description_summary=text[:250].strip() + ("..." if len(text) > 250 else ""),
+                        raw_text=text,
+                        hiring_contact_name=author,
+                        hiring_contact_profile=author_url,
+                        hiring_contact_email=recruiter_email,
+                        application_url=apply_url,
+                        is_hiring_confirmed=True,
+                        relevance_score=0.9,
+                        posted_relative="recent feed post",
+                    )
+                    parsed_jobs.append(post_obj)
+
+        finally:
+            await browser.close()
+
+    # Bulk upsert into SQLite database
+    summary = bulk_upsert_jobs(parsed_jobs, source_name=source_name)
+    stats = get_storage_stats()
+
+    return {
+        "sync_summary": summary,
+        "database_stats": stats,
+        "jobs": [j.model_dump() for j in parsed_jobs],
+    }
