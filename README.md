@@ -63,7 +63,8 @@ If you also use Claude Code CLI, pass the `--claude` flag:
 To search public posts, interact, and send connection requests, LinkedIn requires a logged-in browser session. Run the interactive login helper:
 
 ```bash
-python login.py
+./.venv/bin/python login.py
+# (Or: python3 login.py — auto-detects and uses the .venv interpreter)
 ```
 
 This will launch a visible Chromium window:
