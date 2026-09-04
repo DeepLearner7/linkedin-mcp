@@ -59,6 +59,25 @@ async def search_feed_posts(
         await page.evaluate("window.scrollBy(0, window.innerHeight * 1.5)")
         await human_delay(0.8, 1.2)
 
+    # Auto-expand "...see more" buttons so full post text, contact emails, and requirements are rendered
+    try:
+        await page.evaluate("""
+            () => {
+                const buttons = document.querySelectorAll(
+                    'button.feed-shared-inline-show-more-text__button, ' +
+                    'button[aria-label*="see more" i], ' +
+                    '.feed-shared-inline-show-more-text button, ' +
+                    '.update-components-text button'
+                );
+                buttons.forEach(btn => {
+                    try { btn.click(); } catch (e) {}
+                });
+            }
+        """)
+        await human_delay(0.4, 0.7)
+    except Exception:
+        pass
+
     html = await page.content()
     soup = BeautifulSoup(html, "html.parser")
 

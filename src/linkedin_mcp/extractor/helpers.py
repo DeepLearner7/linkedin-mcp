@@ -52,20 +52,23 @@ EXPERIENCE_REGEXES = [
 
 # Hiring triggers vs candidate self-promotion triggers
 NEGATIVE_TRIGGERS = [
-    "i am looking for", "i'm looking for", "open to work", "#opentowork",
-    "seeking new opportunities", "looking for my next role", "recently laid off",
+    "looking for a job", "looking for an opportunity", "looking for opportunities",
+    "looking for new opportunities", "looking for my next role", "looking for my next opportunity",
+    "seeking new opportunities", "seeking a job", "seeking a role",
+    "open to work", "#opentowork", "recently laid off",
     "thrilled to announce that i have joined", "excited to share that i've joined",
     "happy to share that i have joined", "started a new position",
+    "started a new role", "joined as", "completed my certification"
 ]
 
 POSITIVE_TRIGGERS = [
     "we are hiring", "we're hiring", "our team is hiring", "urgent requirement",
-    "immediate opening", "job alert", "looking for a senior data engineer",
-    "looking for senior data engineer", "looking for data platform engineer",
-    "looking for a data platform engineer", "looking for data engineering lead",
-    "looking for a data engineering lead", "hiring for", "send your resume",
-    "share your cv", "send cv to", "share resume to", "apply here",
-    "apply at", "open positions", "join our team",
+    "immediate opening", "immediate requirement", "job alert", "#hiring", "actively hiring",
+    "hiring for", "send your resume", "share your cv", "send cv to", "share resume to",
+    "send your cv", "apply here", "apply at", "open positions", "open roles",
+    "join our team", "looking for a", "looking for senior", "looking for data",
+    "dm me your resume", "dm your resume", "drop your cv", "drop your resume",
+    "dm your profile", "reach out to me at", "interested candidates can share"
 ]
 
 
@@ -137,7 +140,9 @@ def is_likely_hiring_post(text: str) -> Tuple[bool, str]:
     # Check for candidate / job seeker / celebratory triggers
     for neg in NEGATIVE_TRIGGERS:
         if neg in lower:
-            return False, f"Matches candidate/celebratory pattern: '{neg}'"
+            # Verify it's not actually a recruiter post sharing an opening
+            if not any(pos in lower for pos in ["we are hiring", "we're hiring", "hiring for", "urgent requirement"]):
+                return False, f"Matches candidate/celebratory pattern: '{neg}'"
 
     # Check for positive hiring triggers
     for pos in POSITIVE_TRIGGERS:
@@ -145,12 +150,18 @@ def is_likely_hiring_post(text: str) -> Tuple[bool, str]:
             return True, f"Matches hiring trigger: '{pos}'"
 
     # Secondary heuristic: mentions data engineering / platform role terms and hiring context words
-    role_terms = ["data engineer", "data engineering", "data platform"]
+    role_terms = ["data engineer", "data engineering", "data platform", "platform engineer"]
     context_words = [
         "experience", "location", "apply", "contact", "pune", "bangalore", "bengaluru",
-        "salary", "lead", "hybrid", "remote", "onsite", "resumes", "cv"
+        "salary", "lead", "hybrid", "remote", "onsite", "resumes", "cv", "email", "mail",
+        "candidate", "opening", "openings", "skills", "kafka", "spark", "sql"
     ]
     if any(r in lower for r in role_terms) and any(w in lower for w in context_words):
         return True, "Contextual match for Data Engineering / Platform role announcement"
+
+    # If an email address is present alongside data skills, treat as hiring lead
+    emails = extract_emails(text)
+    if emails and any(s in lower for s in ["spark", "python", "kafka", "sql", "data"]):
+        return True, f"Contains recruiter contact email ({emails[0]}) with data skills"
 
     return False, "No strong hiring signals found"

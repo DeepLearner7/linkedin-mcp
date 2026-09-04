@@ -74,13 +74,24 @@ async def run_job_sync(
     # e.g. '("Senior Data Engineer" OR "Senior Data Platform Engineer" OR "Data Engineering Lead")'
     if len(keyword_list) > 1:
         query_kw = "(" + " OR ".join(f'"{k.strip(chr(34))}"' for k in keyword_list) + ")"
-        feed_kw = "(" + " OR ".join(f'"{k.strip(chr(34))}"' for k in keyword_list) + ")"
     elif keyword_list:
         query_kw = f'"{keyword_list[0].strip(chr(34))}"'
-        feed_kw = keyword_list[0].strip('"')
     else:
         query_kw = '"Senior Data Engineer"'
-        feed_kw = "Senior Data Engineer"
+
+    # For Recruiter Feed Posts: LinkedIn content search behaves best with concise, unnested queries
+    # e.g., 'hiring "Data Engineer" Pune' rather than complex multi-clause Boolean expressions
+    feed_term = "Data Engineer"
+    for k in keyword_list:
+        clean_k = k.lower().replace("senior", "").replace("lead", "").strip()
+        if "data engineer" in clean_k:
+            feed_term = "Data Engineer"
+            break
+        elif "platform" in clean_k:
+            feed_term = "Data Platform"
+            break
+    if not keyword_list:
+        feed_term = "Data Engineer"
 
     async with async_playwright() as p:
         browser, context = await launch_stealth_context(p, headless=True)
@@ -134,7 +145,7 @@ async def run_job_sync(
 
                 # 2. Scrape Recruiter Feed Posts
                 if include_feed_posts:
-                    post_query = f"hiring {feed_kw} {loc}"
+                    post_query = f'hiring "{feed_term}" {loc}'
                     logger.info("Searching Feed Posts for '%s'...", post_query)
                     try:
                         raw_posts = await search_feed_posts(
@@ -157,7 +168,7 @@ async def run_job_sync(
                             author_url = post.get("author_url", "")
                             headline = post.get("headline", "")
 
-                            post_id = generate_job_id(SourceType.FEED_POST, post_url, feed_kw, author)
+                            post_id = generate_job_id(SourceType.FEED_POST, post_url, feed_term, author)
                             if post_id in seen_job_ids:
                                 continue
                             seen_job_ids.add(post_id)
@@ -177,11 +188,21 @@ async def run_job_sync(
                             elif "@" in headline:
                                 company_guess = headline.split("@")[-1].split("|")[0].strip()
 
+                            lower_text = text.lower()
+                            if "lead" in lower_text or "manager" in lower_text:
+                                inferred_title = "Data Engineering Lead (Recruiter Post)"
+                            elif "platform" in lower_text:
+                                inferred_title = "Data Platform Engineer (Recruiter Post)"
+                            elif "senior" in lower_text or "sr" in lower_text:
+                                inferred_title = "Senior Data Engineer (Recruiter Post)"
+                            else:
+                                inferred_title = f"{feed_term} (Recruiter Post)"
+
                             post_obj = DeterministicJobSchema(
                                 job_id=post_id,
                                 source_type=SourceType.FEED_POST,
                                 source_url=post_url or author_url,
-                                title=f"Data Engineering / Platform (Recruiter Post)",
+                                title=inferred_title,
                                 company=company_guess,
                                 location=loc,
                                 workplace_type=workplace,
