@@ -11,11 +11,14 @@ Installed once, it is available **system-wide** across any project directory on 
 - **Global Availability:** Registers into `~/.gemini/config/mcp_config.json` (and optionally `~/.claude.json`).
 - **Live Local Development:** Installed in editable mode (`pip install -e .`). Code changes you make in this repository are immediately active without reinstalling.
 - **Built-in Tools:**
-  - `linkedin_status`: Diagnostic check of MCP connection and credentials.
-  - `linkedin_get_profile`: Fetch profile details by member ID, vanity name, or `me`.
+  - `linkedin_status`: Diagnostic check of MCP connection, API credentials, browser session, and daily safety stats.
+  - `linkedin_search_feed_posts`: Live search for posts by keywords with date/sort filters and computed engagement scores (reactions & comments).
+  - `linkedin_comment_on_post`: Post insightful comments to LinkedIn posts with built-in daily safety limits.
+  - `linkedin_search_people`: Find targeted leads, hiring managers, recruiters, or peers.
+  - `linkedin_send_connect_request`: Send connection requests with custom personalized notes (up to 300 chars).
+  - `linkedin_get_safety_stats`: View daily remaining quota for comments and connection invites.
+  - `linkedin_get_profile`: Fetch profile details by member ID or `me`.
   - `linkedin_create_post`: Publish or draft text posts with visibility control.
-  - `linkedin_search_posts`: Search posts and discussions by keywords.
-- **Graceful Fallback:** Operates in mock/demo mode out of the box when `LINKEDIN_ACCESS_TOKEN` is not yet set.
 
 ---
 
@@ -48,7 +51,24 @@ If you also use Claude Code CLI, pass the `--claude` flag:
 
 ---
 
-## Configuration
+## Authentication & Setup
+
+### 1. Browser Session Authentication (For Post Search, Comments & Connect Requests)
+
+To search public posts, interact, and send connection requests, LinkedIn requires a logged-in browser session. Run the interactive login helper:
+
+```bash
+python login.py
+```
+
+This will launch a visible Chromium window:
+1. Log into your LinkedIn account normally.
+2. Complete 2FA or CAPTCHA if prompted.
+3. Once you reach the feed, the session is captured automatically and saved to `~/.config/linkedin-mcp/session.json`.
+
+*(Alternatively, you can set `LINKEDIN_LI_AT_COOKIE=your_cookie` in `.env` if you prefer).*
+
+### 2. LinkedIn REST API (Optional, for Publishing Posts directly)
 
 Add your LinkedIn OAuth2 Access Token to `.env`:
 

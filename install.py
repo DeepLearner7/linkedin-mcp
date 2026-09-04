@@ -49,6 +49,8 @@ def install_package():
     print("Installing linkedin-mcp in editable mode...")
     run_command([str(PYTHON_EXE), "-m", "pip", "install", "--upgrade", "pip", "setuptools"])
     run_command([str(PYTHON_EXE), "-m", "pip", "install", "-e", "."])
+    print("Ensuring Playwright Chromium browser is installed...")
+    run_command([str(PYTHON_EXE), "-m", "playwright", "install", "chromium"])
 
 
 def setup_env_file():
