@@ -2,6 +2,7 @@
 Orchestrator for automated scraping, filtering, and database synchronization of LinkedIn jobs.
 """
 
+import json
 import logging
 from typing import Dict, Any, List, Optional
 from playwright.async_api import async_playwright
@@ -23,6 +24,7 @@ from linkedin_mcp.db.schema import (
     generate_job_id,
 )
 from linkedin_mcp.db.repository import bulk_upsert_jobs, get_storage_stats
+from linkedin_mcp.db.database import DEFAULT_DB_PATH
 
 logger = logging.getLogger("linkedin-mcp.orchestrator")
 
@@ -68,6 +70,7 @@ async def run_job_sync(
     location_list = [l.strip() for l in location.split(",") if l.strip()]
 
     parsed_jobs: List[DeterministicJobSchema] = []
+    candidate_feed_posts: List[Dict[str, Any]] = []
     seen_job_ids = set()
 
     # Construct combined Boolean search expression if multiple roles are requested:
@@ -158,9 +161,7 @@ async def run_job_sync(
 
                         for post in raw_posts:
                             text = post.get("text", "")
-                            is_hiring, reason = is_likely_hiring_post(text)
-                            if not is_hiring:
-                                logger.debug("Skipping non-hiring post from %s: %s", post.get("author_name"), reason)
+                            if not text or len(text.strip()) < 15:
                                 continue
 
                             post_url = post.get("post_url", "")
@@ -179,53 +180,37 @@ async def run_job_sync(
                             exp_years = extract_experience_years(text)
                             workplace = _detect_workplace_type(text)
 
-                            recruiter_email = emails[0] if emails else None
-                            apply_url = urls[0] if urls else None
-
-                            company_guess = "LinkedIn Recruiter / Stealth"
-                            if " at " in headline:
-                                company_guess = headline.split(" at ")[-1].split("|")[0].strip()
-                            elif "@" in headline:
-                                company_guess = headline.split("@")[-1].split("|")[0].strip()
-
-                            lower_text = text.lower()
-                            if "lead" in lower_text or "manager" in lower_text:
-                                inferred_title = "Data Engineering Lead (Recruiter Post)"
-                            elif "platform" in lower_text:
-                                inferred_title = "Data Platform Engineer (Recruiter Post)"
-                            elif "senior" in lower_text or "sr" in lower_text:
-                                inferred_title = "Senior Data Engineer (Recruiter Post)"
-                            else:
-                                inferred_title = f"{feed_term} (Recruiter Post)"
-
-                            post_obj = DeterministicJobSchema(
-                                job_id=post_id,
-                                source_type=SourceType.FEED_POST,
-                                source_url=post_url or author_url,
-                                title=inferred_title,
-                                company=company_guess,
-                                location=loc,
-                                workplace_type=workplace,
-                                experience_min_years=exp_years,
-                                tech_stack=skills,
-                                description_summary=text[:250].strip() + ("..." if len(text) > 250 else ""),
-                                raw_text=text,
-                                hiring_contact_name=author,
-                                hiring_contact_profile=author_url,
-                                hiring_contact_email=recruiter_email,
-                                application_url=apply_url,
-                                is_hiring_confirmed=True,
-                                relevance_score=0.9,
-                                posted_relative="recent feed post",
-                            )
-                            parsed_jobs.append(post_obj)
+                            # Stage candidate post for Stage 2 Antigravity AI classification
+                            candidate_feed_posts.append({
+                                "post_id": post_id,
+                                "author_name": author,
+                                "author_url": author_url,
+                                "headline": headline,
+                                "post_url": post_url,
+                                "target_location": loc,
+                                "target_role": feed_term,
+                                "text": text,
+                                "suggested_emails": emails,
+                                "suggested_urls": urls,
+                                "suggested_skills": skills,
+                                "suggested_exp_years": exp_years,
+                                "suggested_workplace": workplace.value,
+                            })
                     except Exception as e:
                         logger.warning("Error scraping Feed Posts for '%s': %s", post_query, e)
 
         finally:
             await browser.close()
 
-    # Bulk upsert into SQLite database
+    # Save candidate feed posts for Stage 2 Antigravity AI Semantic Classification
+    candidate_posts_file = DEFAULT_DB_PATH.parent / "candidate_feed_posts.json"
+    try:
+        candidate_posts_file.write_text(json.dumps(candidate_feed_posts, indent=2), encoding="utf-8")
+        logger.info("Saved %d candidate feed posts for AI classification to: %s", len(candidate_feed_posts), candidate_posts_file)
+    except Exception as e:
+        logger.warning("Failed saving candidate feed posts: %s", e)
+
+    # Bulk upsert Job Board jobs into SQLite database
     summary = bulk_upsert_jobs(parsed_jobs, source_name=source_name)
     stats = get_storage_stats()
 
@@ -233,4 +218,6 @@ async def run_job_sync(
         "sync_summary": summary,
         "database_stats": stats,
         "jobs": [j.model_dump() for j in parsed_jobs],
+        "candidate_feed_posts_count": len(candidate_feed_posts),
+        "candidate_feed_posts_file": str(candidate_posts_file),
     }

@@ -194,11 +194,11 @@ def unregister(purge_all: bool = False):
             except Exception as e:
                 print(f"Warning purging {DATA_DIR}: {e}")
         else:
-            for f in ["jobs.db", "jobs.db-wal", "jobs.db-shm", "sync.log", "latest_sync_report.md"]:
+            for f in ["jobs.db", "jobs.db-wal", "jobs.db-shm", "sync.log", "latest_sync_report.md", "candidate_feed_posts.json"]:
                 target = DATA_DIR / f
                 if target.exists():
                     target.unlink(missing_ok=True)
-            print(f"✓ Removed SQLite database, reports & sync logs from {DATA_DIR} (session.json preserved).")
+            print(f"✓ Removed SQLite database, staged posts, reports & sync logs from {DATA_DIR} (session.json preserved).")
 
     print("\nUninstallation Complete!")
     print("--------------------------------------------------")

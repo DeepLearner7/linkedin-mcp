@@ -39,9 +39,10 @@ cd "${REPO_DIR}"
 HEADER="========================================================\n[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Starting Daily LinkedIn Job Sync\nRunning in: ${REPO_DIR}\nLog file:   ${LOG_FILE}\n========================================================"
 
 REPORT_FILE="${DATA_DIR}/latest_sync_report.md"
+CANDIDATE_POSTS_FILE="${DATA_DIR}/candidate_feed_posts.json"
 
 run_sync() {
-    echo "==> [Stage 1/2] Fetching LinkedIn jobs via Boolean OR pipeline (Pune & Bangalore, past 7 days)..."
+    echo "==> [Stage 1/2] Fetching LinkedIn Job Board & Staging Recruiter Feed Posts (Pune & Bangalore, past 7 days)..."
     "${PYTHON_BIN}" -m linkedin_mcp.pipeline.cli \
         --keywords "Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead" \
         --location "Pune, Bangalore" \
@@ -51,11 +52,19 @@ run_sync() {
         --output "${REPORT_FILE}"
 
     if [[ -n "${AGY_BIN}" && -x "${AGY_BIN}" ]]; then
-        echo -e "\n==> [Stage 2/2] Generating Antigravity AI Executive Briefing from stored jobs..."
-        AGY_PROMPT="Analyze the latest LinkedIn job sync results stored in ${REPORT_FILE}. Produce a concise Executive Briefing for a Senior Data Engineering / Platform / Lead candidate in Pune & Bangalore:
-1. Top high-signal job openings (company, role, location, easy-apply or recruiter link).
-2. Key in-demand technical stack patterns (e.g., Spark, Kafka, Databricks, Snowflake, Cloud).
-3. Direct recruiter contact leads (names, profiles, emails if available)."
+        echo -e "\n==> [Stage 2/2] Running Antigravity AI Semantic Post Classifier & Executive Briefing..."
+        AGY_PROMPT="You are the AI Hiring & Recruiter Classifier for the daily LinkedIn sync.
+1. Inspect the candidate recruiter feed posts stored in ${CANDIDATE_POSTS_FILE}.
+2. For each post, perform semantic classification:
+   - Determine whether the post author is actively HIRING for a Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead, or data team role in Pune or Bangalore.
+   - Filter out non-hiring noise: job seekers (#opentowork, seeking opportunities), celebrating new roles, course advertisements, agency marketing, and general tech commentary.
+   - For every verified hiring opening, extract: title (e.g. 'Senior Data Engineer (Recruiter Post)'), company, location, workplace_type ('remote', 'hybrid', 'onsite'), tech_stack (list of skills), hiring_contact_name, hiring_contact_profile, hiring_contact_email, and description_summary.
+   - Call the MCP tool 'linkedin_save_parsed_jobs' with the verified jobs list to store them into SQLite.
+3. Review the combined openings (Job Board from ${REPORT_FILE} and newly verified Recruiter posts).
+4. Produce a high-value Executive Briefing:
+   - Top High-Signal Opportunities (categorized into Leadership/Lead, Tier-1 Product/FinTech, and Scaleups with Easy Apply).
+   - In-demand Technical Stack Patterns across the openings.
+   - Direct Recruiter Contacts (names, profile links, and direct emails)."
         "${AGY_BIN}" -p "${AGY_PROMPT}" --dangerously-skip-permissions
     fi
 }

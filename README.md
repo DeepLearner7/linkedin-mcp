@@ -120,18 +120,27 @@ The system includes a daily scraping, deterministic schema extraction, and SQLit
 To ensure **blazing speed (< 1.5 minutes)** without timeouts while maintaining **high-precision AI intelligence**, the daily sync uses a two-stage decoupled architecture:
 
 ```mermaid
-flowchart LR
-    A["LinkedIn (Pune & Bangalore)"] -->|Stage 1: Fast Scraper| B["SQLite & latest_sync_report.md"]
-    B -->|Stage 2: Antigravity AI| C["Executive Briefing & Sourcing Plan"]
+flowchart TD
+    A["LinkedIn (Job Board & Feed)"] -->|Stage 1: Fast Playwright Scraper| B["Job Board Jobs → SQLite"]
+    A -->|Stage 1: Zero-Drop Staging| C["Raw Recruiter Posts → candidate_feed_posts.json"]
+    C -->|Stage 2: Antigravity AI Semantic Classifier| D{"AI Hiring Filter"}
+    D -->|Verified Hiring| E["linkedin_save_parsed_jobs → SQLite"]
+    D -->|Noise / Self-Promo| F[Discarded]
+    B --> G["Unified Executive Briefing & Outreach Plan"]
+    E --> G
 ```
 
 1. **Stage 1 (High-Recall Scraper - Fast & Deterministic):**
    * Executes Boolean `OR` queries across target roles (`Senior Data Engineer`, `Senior Data Platform Engineer`, `Data Engineering Lead`) in `Pune` and `Bangalore` for the past 7 days (`past-week`).
-   * Fetches Job Board cards and Recruiter Feed Posts without LLM latency.
-   * Extracts tech stacks, extracts URLs/emails, dedupes, and commits to SQLite (`~/.config/linkedin-mcp/jobs.db`).
-2. **Stage 2 (High-Precision AI Briefing):**
-   * Antigravity AI (`agy`) reads the local synchronized dataset in milliseconds.
-   * Performs deep semantic reasoning: filters out false-positive noise, groups openings into Leadership vs Scaleup tracks, highlights in-demand streaming/lakehouse skills, and drafts direct recruiter outreach plans.
+   * Fetches Job Board cards and bulk-upserts them directly into SQLite (`~/.config/linkedin-mcp/jobs.db`).
+   * Auto-expands `...see more` on LinkedIn recruiter posts and stages **all** raw candidate posts into `~/.config/linkedin-mcp/candidate_feed_posts.json` without discarding anything via regex.
+2. **Stage 2 (High-Precision AI Semantic Classification & Briefing):**
+   * Antigravity AI (`agy`) reads `candidate_feed_posts.json` and uses LLM semantic reasoning to evaluate every recruiter post:
+     * Validates whether the author is actively hiring for a Senior Data Engineering / Platform / Lead role.
+     * Filters out non-hiring noise (job seekers `#opentowork`, celebratory announcements, course marketing, opinion pieces).
+     * Extracts structured metadata (title, company, tech stack, recruiter contact email).
+     * Calls `linkedin_save_parsed_jobs` to commit verified recruiter openings to SQLite.
+   * Generates a consolidated Executive Briefing uniting Job Board openings and AI-verified recruiter leads.
 
 ---
 

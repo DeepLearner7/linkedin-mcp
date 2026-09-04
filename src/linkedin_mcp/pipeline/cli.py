@@ -47,6 +47,11 @@ def _format_markdown_report(result: dict) -> str:
             f"| {idx} | **{j.get('title')}** | {j.get('company')} | {j.get('location')} | {src} | {stack_str} | {apply_link} |"
         )
 
+    cand_count = result.get("candidate_feed_posts_count", 0)
+    cand_file = result.get("candidate_feed_posts_file", "")
+    if cand_count > 0:
+        lines.append(f"\n> [!NOTE]\n> **Candidate Recruiter Posts Staged:** {cand_count} raw recruiter post(s) staged in `{cand_file}` for AI Semantic Classification.")
+
     return "\n".join(lines)
 
 
