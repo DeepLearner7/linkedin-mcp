@@ -245,10 +245,14 @@ def linkedin_get_connections_count() -> str:
 
 ---
 
-## Uninstallation
+## Uninstallation (1-Command Cleanup)
 
-To remove the global registration:
+To completely uninstall everything (Antigravity & Claude registrations, global CLI symlinks, crontab schedules, `.venv`, and database):
 
 ```bash
-python3 install.py --uninstall
+# Clean uninstall (preserves session.json so you don't have to re-login next time):
+./uninstall.sh
+
+# Or full purge (including LinkedIn session):
+./uninstall.sh --purge-all
 ```

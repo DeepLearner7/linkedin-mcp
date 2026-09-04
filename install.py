@@ -13,6 +13,7 @@ This script:
 import sys
 import os
 import json
+import shutil
 import subprocess
 import argparse
 from pathlib import Path
@@ -30,6 +31,8 @@ ANTIGRAVITY_CONFIG_FILE = ANTIGRAVITY_CONFIG_DIR / "mcp_config.json"
 CLAUDE_CONFIG_FILE = Path.home() / ".claude.json"
 LOCAL_BIN_DIR = Path.home() / ".local" / "bin"
 GLOBAL_JOBS_CLI = LOCAL_BIN_DIR / ("linkedin-jobs.exe" if IS_WINDOWS else "linkedin-jobs")
+DATA_DIR = Path.home() / ".config" / "linkedin-mcp"
+LAUNCHD_PLIST = Path.home() / "Library" / "LaunchAgents" / "com.linkedin.mcp.sync.plist"
 
 
 def run_command(cmd, cwd=REPO_ROOT):
@@ -110,8 +113,13 @@ def register_antigravity():
     print(f"Successfully registered 'linkedin' in Antigravity config: {ANTIGRAVITY_CONFIG_FILE}")
 
 
-def unregister():
-    """Remove registration from configs."""
+def unregister(purge_all: bool = False):
+    """Completely uninstall and remove global registrations, schedules, and local environments."""
+    print("==================================================")
+    print("  Uninstalling LinkedIn MCP Server                ")
+    print("==================================================")
+
+    # 1. Antigravity MCP config
     if ANTIGRAVITY_CONFIG_FILE.exists():
         try:
             with open(ANTIGRAVITY_CONFIG_FILE, "r", encoding="utf-8") as f:
@@ -120,10 +128,11 @@ def unregister():
                 del config["mcpServers"]["linkedin"]
                 with open(ANTIGRAVITY_CONFIG_FILE, "w", encoding="utf-8") as f:
                     json.dump(config, f, indent=2)
-                print("Removed 'linkedin' from Antigravity config.")
+                print("✓ Removed 'linkedin' from Antigravity config.")
         except Exception as e:
             print(f"Error removing from Antigravity config: {e}")
 
+    # 2. Claude Code config
     if CLAUDE_CONFIG_FILE.exists():
         try:
             with open(CLAUDE_CONFIG_FILE, "r", encoding="utf-8") as f:
@@ -132,17 +141,67 @@ def unregister():
                 del config["mcpServers"]["linkedin"]
                 with open(CLAUDE_CONFIG_FILE, "w", encoding="utf-8") as f:
                     json.dump(config, f, indent=2)
-                print("Removed 'linkedin' from Claude config.")
+                print("✓ Removed 'linkedin' from Claude config.")
         except Exception as e:
             print(f"Error removing from Claude config: {e}")
 
-    # Remove global CLI symlink
+    # 3. Global CLI shortcut
     if not IS_WINDOWS and (GLOBAL_JOBS_CLI.is_symlink() or GLOBAL_JOBS_CLI.exists()):
         try:
             GLOBAL_JOBS_CLI.unlink()
-            print(f"Removed global CLI shortcut: {GLOBAL_JOBS_CLI}")
+            print(f"✓ Removed global CLI shortcut: {GLOBAL_JOBS_CLI}")
         except Exception as e:
             pass
+
+    # 4. Background crontab schedule
+    if not IS_WINDOWS:
+        try:
+            res = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+            if res.returncode == 0 and "daily_sync.sh" in res.stdout:
+                lines = [line for line in res.stdout.splitlines() if "daily_sync.sh" not in line]
+                new_cron = "\n".join(lines).strip()
+                if new_cron:
+                    subprocess.run(["crontab", "-"], input=new_cron + "\n", text=True, check=True)
+                else:
+                    subprocess.run(["crontab", "-r"], capture_output=True)
+                print("✓ Removed daily_sync.sh from crontab.")
+        except Exception as e:
+            pass
+
+    # 5. macOS LaunchAgent
+    if not IS_WINDOWS and LAUNCHD_PLIST.exists():
+        try:
+            subprocess.run(["launchctl", "unload", str(LAUNCHD_PLIST)], capture_output=True)
+            LAUNCHD_PLIST.unlink(missing_ok=True)
+            print("✓ Unloaded and removed macOS LaunchAgent.")
+        except Exception as e:
+            pass
+
+    # 6. Isolated virtual environment (.venv)
+    if VENV_DIR.exists():
+        try:
+            shutil.rmtree(VENV_DIR, ignore_errors=True)
+            print(f"✓ Removed virtual environment: {VENV_DIR}")
+        except Exception as e:
+            print(f"Warning removing .venv: {e}")
+
+    # 7. SQLite database and log files
+    if DATA_DIR.exists():
+        if purge_all:
+            try:
+                shutil.rmtree(DATA_DIR, ignore_errors=True)
+                print(f"✓ Purged entire data directory (including session): {DATA_DIR}")
+            except Exception as e:
+                print(f"Warning purging {DATA_DIR}: {e}")
+        else:
+            for f in ["jobs.db", "jobs.db-wal", "jobs.db-shm", "sync.log"]:
+                target = DATA_DIR / f
+                if target.exists():
+                    target.unlink(missing_ok=True)
+            print(f"✓ Removed SQLite database & sync logs from {DATA_DIR} (session.json preserved).")
+
+    print("\nUninstallation Complete!")
+    print("--------------------------------------------------")
 
 
 def register_claude():
@@ -186,12 +245,13 @@ def init_database():
 
 def main():
     parser = argparse.ArgumentParser(description="Install and configure LinkedIn MCP server globally.")
-    parser.add_argument("--uninstall", action="store_true", help="Unregister the server globally")
+    parser.add_argument("--uninstall", action="store_true", help="Completely uninstall, remove registrations, venv, and database")
+    parser.add_argument("--purge-all", action="store_true", help="Also delete browser session.json when uninstalling")
     parser.add_argument("--claude", action="store_true", help="Also register in Claude Code ~/.claude.json")
     args = parser.parse_args()
 
     if args.uninstall:
-        unregister()
+        unregister(purge_all=args.purge_all)
         return
 
     print("==================================================")
