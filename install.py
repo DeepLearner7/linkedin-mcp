@@ -174,6 +174,16 @@ def register_claude():
     print(f"Successfully registered 'linkedin' in Claude config: {CLAUDE_CONFIG_FILE}")
 
 
+def init_database():
+    """Initialize the SQLite database with all tables and indexes."""
+    print("Initializing SQLite database with schema tables...")
+    run_command([
+        str(PYTHON_EXE),
+        "-c",
+        "from linkedin_mcp.db.database import init_db, DEFAULT_DB_PATH; init_db(); print(f'Database successfully initialized at: {DEFAULT_DB_PATH}')"
+    ])
+
+
 def main():
     parser = argparse.ArgumentParser(description="Install and configure LinkedIn MCP server globally.")
     parser.add_argument("--uninstall", action="store_true", help="Unregister the server globally")
@@ -189,6 +199,7 @@ def main():
     print("==================================================")
     ensure_venv()
     install_package()
+    init_database()
     setup_env_file()
     register_antigravity()
 

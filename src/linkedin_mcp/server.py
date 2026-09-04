@@ -44,7 +44,7 @@ from linkedin_mcp.db.repository import (
     query_stored_jobs,
     get_storage_stats,
 )
-from linkedin_mcp.db.database import DEFAULT_DB_PATH
+from linkedin_mcp.db.database import DEFAULT_DB_PATH, init_db
 
 # Configure logging exclusively to stderr to avoid corrupting stdio JSON-RPC stream
 logging.basicConfig(
@@ -67,8 +67,13 @@ for env_path in env_locations:
         load_dotenv(dotenv_path=env_path)
         break
 
-# Initialize MCP Server
+# Initialize MCP Server and Database
 app = MCPServer("linkedin")
+
+try:
+    init_db()
+except Exception as e:
+    logger.warning("Could not auto-initialize SQLite database: %s", e)
 
 
 def _get_access_token() -> Optional[str]:
