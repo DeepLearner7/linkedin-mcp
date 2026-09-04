@@ -21,6 +21,8 @@ def test_registered_tools():
         "linkedin_comment_on_post",
         "linkedin_search_people",
         "linkedin_send_connect_request",
+        "linkedin_search_jobs",
+        "linkedin_get_job_details",
     ]
     
     for tool_name in expected_tools:

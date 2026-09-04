@@ -17,6 +17,8 @@ Installed once, it is available **system-wide** across any project directory on 
   - `linkedin_search_people`: Find targeted leads, hiring managers, recruiters, or peers.
   - `linkedin_send_connect_request`: Send connection requests with custom personalized notes (up to 300 chars).
   - `linkedin_get_safety_stats`: View daily remaining quota for comments and connection invites.
+  - `linkedin_search_jobs`: Search the official LinkedIn Job Board by keywords, location (e.g. 'Pune'), workplace type ('remote', 'hybrid', 'onsite'), experience level, and date posted, with pagination support.
+  - `linkedin_get_job_details`: Fetch full job descriptions, role requirements, and hiring details by job ID or URL.
   - `linkedin_get_profile`: Fetch profile details by member ID or `me`.
   - `linkedin_create_post`: Publish or draft text posts with visibility control.
 

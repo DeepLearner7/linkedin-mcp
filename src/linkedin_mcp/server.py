@@ -28,6 +28,7 @@ from linkedin_mcp.browser import (
 )
 from linkedin_mcp.actions.posts import search_feed_posts, add_comment_to_post
 from linkedin_mcp.actions.people import search_people, send_connection_request
+from linkedin_mcp.actions.jobs import search_job_board, get_job_details
 from linkedin_mcp.safety import get_safety_summary, get_safety_stats, check_action_allowed
 from linkedin_mcp.auth import run_interactive_login
 
@@ -543,6 +544,115 @@ async def linkedin_send_connect_request(profile_url: str, note: Optional[str] = 
         except Exception as e:
             logger.error("Error sending connection request: %s", e)
             return f"Error while sending connection request: {str(e)}"
+        finally:
+            await browser.close()
+
+
+@app.tool()
+async def linkedin_search_jobs(
+    keywords: str,
+    location: str = "Pune",
+    limit: int = 10,
+    sort_by: str = "date_posted",
+    date_posted: str = "past-month",
+    workplace_type: Optional[str] = None,
+    experience_level: Optional[str] = None,
+    start_offset: int = 0,
+) -> str:
+    """Search the LinkedIn Job Board for active job openings with filters and pagination.
+
+    Args:
+        keywords: Search query terms (e.g. 'Senior Data Engineer', 'Machine Learning').
+        location: Target location (e.g. 'Pune', 'Bengaluru', 'Remote'). Default is 'Pune'.
+        limit: Maximum number of job openings to return (default: 10).
+        sort_by: Sorting criteria: 'date_posted' (most recent) or 'relevance'. Default is 'date_posted'.
+        date_posted: Time filter: 'past-24h', 'past-week', 'past-month', or 'any'. Default is 'past-month'.
+        workplace_type: Filter by workplace: 'onsite', 'remote', 'hybrid', or 'any'.
+        experience_level: Filter by experience: 'internship', 'entry', 'associate', 'mid-senior', 'director', 'executive', or 'any'.
+        start_offset: Pagination start offset (e.g. 0, 25, 50). Default is 0.
+    """
+    if not has_saved_session():
+        return (
+            "LinkedIn browser session is not configured.\n"
+            "To authenticate, please run the login script in your terminal:\n"
+            "   python login.py"
+        )
+
+    logger.info("Searching job board: keywords='%s', location='%s', limit=%d", keywords, location, limit)
+    async with async_playwright() as p:
+        browser, context = await launch_stealth_context(p, headless=True)
+        page = await context.new_page()
+        try:
+            jobs = await search_job_board(
+                page=page,
+                keywords=keywords,
+                location=location,
+                limit=limit,
+                sort_by=sort_by,
+                date_posted=date_posted if date_posted != "any" else None,
+                workplace_type=workplace_type if workplace_type != "any" else None,
+                experience_level=experience_level if experience_level != "any" else None,
+                start_offset=start_offset,
+            )
+            if not jobs:
+                if not await is_authenticated(page):
+                    return "LinkedIn session expired or requires re-authentication. Please run `python login.py`."
+                return f"No job postings found matching: '{keywords}' in '{location}'."
+
+            output = [f"Found {len(jobs)} jobs for '{keywords}' in '{location}':\n"]
+            for i, job in enumerate(jobs, 1):
+                output.append(f"--- Job {i} ---")
+                output.append(f"Title: {job['title']}")
+                output.append(f"Company: {job['company']}")
+                if job.get("location"):
+                    output.append(f"Location: {job['location']}")
+                if job.get("footer_status"):
+                    output.append(f"Status / Posted: {job['footer_status']}")
+                if job.get("is_easy_apply"):
+                    output.append("Easy Apply: Available")
+                output.append(f"Job URL: {job['job_url']}\n")
+
+            return "\n".join(output)
+        except Exception as e:
+            logger.error("Error searching job board: %s", e)
+            return f"Error while searching LinkedIn job board: {str(e)}"
+        finally:
+            await browser.close()
+
+
+@app.tool()
+async def linkedin_get_job_details(job_identifier: str) -> str:
+    """Fetch complete job description, requirements, and hiring details for a specific LinkedIn job posting.
+
+    Args:
+        job_identifier: Full LinkedIn job URL (e.g. 'https://www.linkedin.com/jobs/view/12345678/') or numeric job ID (e.g. '12345678').
+    """
+    if not has_saved_session():
+        return (
+            "LinkedIn browser session is not configured.\n"
+            "To authenticate, please run the login script in your terminal:\n"
+            "   python login.py"
+        )
+
+    logger.info("Fetching job details for: %s", job_identifier)
+    async with async_playwright() as p:
+        browser, context = await launch_stealth_context(p, headless=True)
+        page = await context.new_page()
+        try:
+            details = await get_job_details(page=page, job_identifier=job_identifier)
+            output = [
+                f"=== Job Details: {details['title']} ===",
+                f"• Company: {details['company']}",
+                f"• URL: {details['job_url']}",
+            ]
+            if details.get("insights"):
+                output.append("• Highlights: " + " | ".join(details["insights"]))
+            output.append("\nDescription:\n" + details["description"])
+            output.append("=" * 35)
+            return "\n".join(output)
+        except Exception as e:
+            logger.error("Error fetching job details: %s", e)
+            return f"Error while fetching job details: {str(e)}"
         finally:
             await browser.close()
 
