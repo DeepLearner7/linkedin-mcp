@@ -15,6 +15,7 @@ class LLMClient:
     """Unified LLM inference client for Gemini and local Ollama."""
 
     def __init__(self, settings: Optional[Dict[str, Any]] = None):
+        self._custom_settings = settings is not None
         self.settings = settings or load_settings()
 
     async def generate(
@@ -24,8 +25,9 @@ class LLMClient:
         temperature: float = 0.7,
     ) -> str:
         """Generate a response using the configured LLM provider."""
-        # Reload latest settings in case user updated API key via UI
-        self.settings = load_settings()
+        # Reload latest settings from disk unless custom settings were passed
+        if not self._custom_settings:
+            self.settings = load_settings()
         provider = self.settings.get("llm_provider", "gemini").lower()
 
         if provider == "gemini":
