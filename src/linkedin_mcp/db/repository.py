@@ -310,3 +310,51 @@ def get_storage_stats(custom_path: Optional[Path] = None) -> Dict[str, Any]:
         "top_companies": top_companies,
         "latest_sync_run": latest_run,
     }
+
+
+def get_job_by_id(job_id: str, custom_path: Optional[Path] = None) -> Optional[Dict[str, Any]]:
+    """Retrieve full details of a specific job opening by its job_id."""
+    init_db(custom_path)
+    with get_db_connection(custom_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM jobs WHERE job_id = ?;", (job_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        d = dict(row)
+        try:
+            d["tech_stack"] = json.loads(d.get("tech_stack_json", "[]"))
+        except Exception:
+            d["tech_stack"] = []
+        d.pop("tech_stack_json", None)
+        d["is_easy_apply"] = bool(d.get("is_easy_apply", 0))
+        d["is_hiring_confirmed"] = bool(d.get("is_hiring_confirmed", 1))
+        return d
+
+
+def get_jobs_for_context(custom_path: Optional[Path] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    """Retrieve a concise list of jobs for LLM grounding and UI dropdowns."""
+    init_db(custom_path)
+    with get_db_connection(custom_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT job_id, title, company, location, workplace_type, source_type,
+                   posted_relative, hiring_contact_name, hiring_contact_email,
+                   tech_stack_json, description_summary, source_url
+            FROM jobs
+            WHERE is_hiring_confirmed = 1
+            ORDER BY scraped_at DESC
+            LIMIT ?;
+        """, (limit,))
+        rows = cursor.fetchall()
+        results = []
+        for row in rows:
+            d = dict(row)
+            try:
+                d["tech_stack"] = json.loads(d.get("tech_stack_json", "[]"))
+            except Exception:
+                d["tech_stack"] = []
+            d.pop("tech_stack_json", None)
+            results.append(d)
+        return results
+

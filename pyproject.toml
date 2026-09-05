@@ -17,7 +17,10 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "httpx>=0.27.0",
     "playwright>=1.40.0",
-    "beautifulsoup4>=4.12.0"
+    "beautifulsoup4>=4.12.0",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.30.0",
+    "google-genai>=2.0.0"
 ]
 
 [project.optional-dependencies]
@@ -29,6 +32,7 @@ test = [
 [project.scripts]
 linkedin-mcp = "linkedin_mcp.server:main"
 linkedin-jobs = "linkedin_mcp.pipeline.cli:main"
+linkedin-ui = "linkedin_mcp.ui.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LinkedIn Career Intelligence & Copilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Marked.js for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef6ff',
+              100: '#d9ebff',
+              500: '#0a66c2', // LinkedIn blue
+              600: '#004182',
+              700: '#002f5e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .dark ::-webkit-scrollbar-track { background: #1e293b; }
+    .dark ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    
+    /* Markdown styling inside chat bubbles */
+    .prose-chat h1, .prose-chat h2, .prose-chat h3 { font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.25rem; color: #1e293b; }
+    .dark .prose-chat h1, .dark .prose-chat h2, .dark .prose-chat h3 { color: #f8fafc; }
+    .prose-chat p { margin-bottom: 0.5rem; line-height: 1.6; }
+    .prose-chat ul, .prose-chat ol { margin-left: 1.25rem; margin-bottom: 0.5rem; }
+    .prose-chat li { list-style-type: disc; margin-bottom: 0.25rem; }
+    .prose-chat strong { font-weight: 600; color: #0f172a; }
+    .dark .prose-chat strong { color: #f1f5f9; }
+    .prose-chat pre { background-color: #0f172a; color: #f8fafc; padding: 0.75rem 1rem; border-radius: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto; margin: 0.5rem 0; position: relative; }
+    .prose-chat code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background-color: rgba(226, 232, 240, 0.7); padding: 0.15rem 0.35rem; border-radius: 0.25rem; }
+    .dark .prose-chat code { background-color: rgba(51, 65, 85, 0.7); }
+    .prose-chat pre code { background: transparent; padding: 0; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-brand-500/20">
+          in
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-lg tracking-tight text-slate-900">Career Intelligence</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">AI Copilot</span>
+          </div>
+          <p class="text-xs text-slate-500 hidden sm:block">Automated LinkedIn Discovery & Recruiter Intelligence</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-1 sm:space-x-2">
+        <button id="tab-btn-jobs" onclick="switchTab('jobs')" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg flex items-center space-x-2 transition bg-brand-50 text-brand-600 border border-brand-200">
+          <i data-lucide="briefcase" class="w-4 h-4"></i>
+          <span>Jobs Discovery</span>
+        </button>
+        <button id="tab-btn-copilot" onclick="switchTab('copilot')" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg flex items-center space-x-2 transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+          <i data-lucide="sparkles" class="w-4 h-4 text-indigo-500"></i>
+          <span>Ask AI Copilot</span>
+        </button>
+        <button id="tab-btn-settings" onclick="switchTab('settings')" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg flex items-center space-x-2 transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Settings</span>
+        </button>
+      </nav>
+
+      <!-- Right Action Bar: Status Pill & Sync Button -->
+      <div class="flex items-center space-x-3">
+        <div id="db-status-pill" class="hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-medium text-slate-600">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="db-job-count-badge">Loading...</span>
+        </div>
+
+        <button id="btn-sync-now" onclick="triggerDailySync()" class="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-medium rounded-lg shadow-sm transition transform active:scale-95">
+          <i data-lucide="refresh-cw" id="sync-icon" class="w-4 h-4"></i>
+          <span id="sync-btn-text">Sync Now</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT CONTAINER ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: JOBS DISCOVERY HUB                                                 -->
+    <!-- ========================================================================= -->
+    <div id="tab-jobs" class="space-y-6">
+      
+      <!-- Metrics Overview Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Total Stored Openings</p>
+            <h3 id="stat-total-jobs" class="text-xl font-bold text-slate-900">-</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <i data-lucide="message-square" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Recruiter Feed Leads</p>
+            <h3 id="stat-feed-posts" class="text-xl font-bold text-slate-900">-</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <i data-lucide="briefcase" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Job Board Postings</p>
+            <h3 id="stat-job-board" class="text-xl font-bold text-slate-900">-</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+            <i data-lucide="trending-up" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Top In-Demand Skill</p>
+            <h3 id="stat-top-skill" class="text-base font-bold text-slate-900 truncate max-w-[130px]">-</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search & Filters Bar -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+          
+          <!-- Search input -->
+          <div class="relative md:col-span-2">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+            <input type="text" id="filter-search" oninput="debounceLoadJobs()" placeholder="Search title, company, skills (e.g. Spark, Barclays, Lead)..."
+                   class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+          </div>
+
+          <!-- Workplace Type -->
+          <div>
+            <select id="filter-workplace" onchange="loadJobs()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+              <option value="all">All Workplaces</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="remote">Remote</option>
+              <option value="onsite">On-site</option>
+            </select>
+          </div>
+
+          <!-- Source Type -->
+          <div>
+            <select id="filter-source" onchange="loadJobs()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+              <option value="all">All Sources</option>
+              <option value="feed_post">Recruiter Posts (High Outreach Value)</option>
+              <option value="job_board">Official Job Board</option>
+            </select>
+          </div>
+
+          <!-- Reset Filters -->
+          <div class="flex items-center justify-between sm:justify-end space-x-2">
+            <button onclick="resetFilters()" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-1">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Reset</span>
+            </button>
+            <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <button id="btn-view-cards" onclick="setViewMode('cards')" class="p-1.5 rounded text-brand-600 bg-white shadow-xs" title="Cards View">
+                <i data-lucide="grid" class="w-4 h-4"></i>
+              </button>
+              <button id="btn-view-table" onclick="setViewMode('table')" class="p-1.5 rounded text-slate-400 hover:text-slate-700" title="Table View">
+                <i data-lucide="list" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Filter summary indicator -->
+        <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+          <span id="jobs-count-text">Loading jobs...</span>
+          <span id="last-sync-time" class="italic"></span>
+        </div>
+      </div>
+
+      <!-- Jobs Container (Cards or Table) -->
+      <div id="jobs-container">
+        <!-- Cards View Grid -->
+        <div id="jobs-cards-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        
+        <!-- Table View (Hidden by default) -->
+        <div id="jobs-table-view" class="hidden bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <tr>
+                  <th class="py-3 px-4">Title & Company</th>
+                  <th class="py-3 px-4">Location</th>
+                  <th class="py-3 px-4">Workplace</th>
+                  <th class="py-3 px-4">Source</th>
+                  <th class="py-3 px-4">Recruiter / Contact</th>
+                  <th class="py-3 px-4">Posted</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="jobs-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State (Hidden) -->
+      <div id="jobs-empty-state" class="hidden py-16 text-center bg-white rounded-xl border border-slate-200">
+        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="inbox" class="w-6 h-6"></i>
+        </div>
+        <h4 class="text-base font-semibold text-slate-900">No matching jobs found</h4>
+        <p class="text-sm text-slate-500 max-w-sm mx-auto mt-1">Try adjusting your keyword search or filter settings, or click "Sync Now" to fetch fresh openings.</p>
+        <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-brand-50 text-brand-600 rounded-lg text-sm font-medium hover:bg-brand-100 transition">Clear Filters</button>
+      </div>
+
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: "ASK AI" CAREER COPILOT                                            -->
+    <!-- ========================================================================= -->
+    <div id="tab-copilot" class="hidden h-[calc(100vh-140px)] flex flex-col md:flex-row gap-4">
+      
+      <!-- Left Sidebar: Target Job Context & Quick Action Pills -->
+      <div class="w-full md:w-80 lg:w-96 flex flex-col gap-4 overflow-y-auto pr-1">
+        
+        <!-- Target Job Context Selector Card -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
+              <i data-lucide="target" class="w-3.5 h-3.5 text-indigo-500"></i>
+              <span>Grounded Context</span>
+            </span>
+            <span id="target-context-badge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">All Database</span>
+          </div>
+
+          <!-- Dropdown to select specific target job -->
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Target Opening / Focus:</label>
+            <select id="select-target-job" onchange="onTargetJobChanged()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+              <option value="all">🌐 Entire Database (Query across all jobs)</option>
+            </select>
+          </div>
+
+          <!-- Preview Card of Selected Job -->
+          <div id="selected-job-preview" class="hidden p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg space-y-1.5 text-xs">
+            <div class="font-bold text-slate-900" id="preview-job-title">-</div>
+            <div class="text-indigo-600 font-medium" id="preview-job-company">-</div>
+            <div class="text-slate-500 flex items-center space-x-1">
+              <i data-lucide="map-pin" class="w-3 h-3"></i>
+              <span id="preview-job-location">-</span>
+            </div>
+            <div id="preview-job-recruiter-box" class="hidden pt-1 border-t border-indigo-100 text-[11px] text-slate-600">
+              <span class="font-semibold text-slate-700">Hiring Contact:</span>
+              <span id="preview-job-recruiter">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick 1-Click Action Prompts -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2.5">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
+            <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+            <span>1-Click Superpowers</span>
+          </span>
+
+          <div class="space-y-1.5">
+            <button onclick="sendQuickPrompt('outreach')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-xs text-slate-700 hover:text-indigo-900 transition flex items-center space-x-2">
+              <span class="text-base">✉️</span>
+              <div class="flex-1">
+                <div class="font-semibold">Draft Recruiter Outreach</div>
+                <div class="text-[10px] text-slate-500">300-char LinkedIn note & cold email</div>
+              </div>
+            </button>
+
+            <button onclick="sendQuickPrompt('fit')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 text-xs text-slate-700 hover:text-emerald-900 transition flex items-center space-x-2">
+              <span class="text-base">⚡</span>
+              <div class="flex-1">
+                <div class="font-semibold">Resume Fit & Gap Analysis</div>
+                <div class="text-[10px] text-slate-500">Match score, overlaps & missing skills</div>
+              </div>
+            </button>
+
+            <button onclick="sendQuickPrompt('interview')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-xs text-slate-700 hover:text-purple-900 transition flex items-center space-x-2">
+              <span class="text-base">🎯</span>
+              <div class="flex-1">
+                <div class="font-semibold">5 Technical Interview Questions</div>
+                <div class="text-[10px] text-slate-500">System architecture tailored to JD stack</div>
+              </div>
+            </button>
+
+            <button onclick="sendQuickPrompt('trends')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-xs text-slate-700 hover:text-blue-900 transition flex items-center space-x-2">
+              <span class="text-base">📊</span>
+              <div class="flex-1">
+                <div class="font-semibold">In-Demand Tech Stack Trends</div>
+                <div class="text-[10px] text-slate-500">Pune & Bangalore market overview</div>
+              </div>
+            </button>
+
+            <button onclick="sendQuickPrompt('direct_leads')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-200 text-xs text-slate-700 hover:text-amber-900 transition flex items-center space-x-2">
+              <span class="text-base">📬</span>
+              <div class="flex-1">
+                <div class="font-semibold">Jobs with Recruiter Emails</div>
+                <div class="text-[10px] text-slate-500">Direct hiring manager contacts</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Saved User Profile Preview -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
+              <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span>Active Resume Context</span>
+            </span>
+            <button onclick="switchTab('settings')" class="text-[11px] text-brand-600 hover:underline">Edit</button>
+          </div>
+          <p id="copilot-profile-snippet" class="text-xs text-slate-600 line-clamp-3 italic">Loading profile...</p>
+        </div>
+
+      </div>
+
+      <!-- Right Area: Interactive Chat Feed & Input Box -->
+      <div class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+        
+        <!-- Chat Header -->
+        <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center">
+              <i data-lucide="bot" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Career Copilot</h3>
+              <p id="chat-subheading" class="text-xs text-slate-500">Connected to your local SQLite database</p>
+            </div>
+          </div>
+          <button onclick="clearChat()" class="text-xs text-slate-400 hover:text-slate-600 px-2.5 py-1 rounded hover:bg-slate-200 transition">
+            Clear Conversation
+          </button>
+        </div>
+
+        <!-- Chat Messages Scrollable Feed -->
+        <div id="chat-messages" class="flex-1 p-5 overflow-y-auto space-y-4">
+          <!-- Initial greeting message -->
+          <div class="flex items-start space-x-3">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 text-xs font-bold">
+              AI
+            </div>
+            <div class="bg-slate-100 border border-slate-200 rounded-2xl rounded-tl-none p-4 max-w-3xl text-sm prose-chat text-slate-800">
+              <p>Hello! I am your <strong>LinkedIn Career Copilot</strong>. I have direct access to every job opening and recruiter feed post in your local database.</p>
+              <p>You can ask me to:</p>
+              <ul>
+                <li><strong>Draft personalized outreach</strong> to recruiters mentioning specific tech stack alignments.</li>
+                <li><strong>Analyze your resume fit</strong> and identify skill gaps against any opening.</li>
+                <li><strong>Generate technical interview & architecture questions</strong> tailored to a job's requirements.</li>
+                <li><strong>Query stored jobs</strong> in natural language (e.g. <em>"Which roles in Pune offer hybrid work and mention Kafka?"</em>).</li>
+              </ul>
+              <p class="text-xs text-slate-500 italic mt-2">Select a target job on the left or try any of the 1-click superpowers to get started!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator (Hidden by default) -->
+        <div id="chat-typing" class="hidden px-5 py-2 flex items-center space-x-2 text-xs text-indigo-600 font-medium bg-indigo-50/50 border-t border-indigo-100">
+          <span class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce"></span>
+          <span class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.2s]"></span>
+          <span class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.4s]"></span>
+          <span class="ml-1">Copilot is analyzing your database and generating response...</span>
+        </div>
+
+        <!-- Input Box -->
+        <div class="p-3 sm:p-4 border-t border-slate-200 bg-white">
+          <form onsubmit="handleChatSubmit(event)" class="flex items-end space-x-2">
+            <div class="flex-1 relative">
+              <textarea id="chat-input" rows="2" placeholder="Ask Career Copilot anything about stored jobs, outreach, interview prep... (Shift+Enter for newline)"
+                        class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"></textarea>
+            </div>
+            <button type="submit" id="btn-chat-send" class="h-11 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-sm flex items-center justify-center space-x-1.5 transition shadow-sm active:scale-95">
+              <i data-lucide="send" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Send</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: SETTINGS & RESUME PROFILE                                          -->
+    <!-- ========================================================================= -->
+    <div id="tab-settings" class="hidden max-w-4xl mx-auto space-y-6">
+      
+      <!-- Card: LLM Provider & API Keys -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
+            <i data-lucide="key" class="w-5 h-5 text-brand-600"></i>
+            <span>AI Copilot Provider Configuration</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-1">Configure your LLM provider to power the Ask AI Career Copilot.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Provider selection -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">LLM Provider</label>
+            <select id="cfg-llm-provider" onchange="onProviderChanged()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="gemini">Google Gemini (Recommended - Free Tier)</option>
+              <option value="ollama">Ollama (100% Local & Offline)</option>
+            </select>
+          </div>
+
+          <!-- Gemini Model selection -->
+          <div id="box-gemini-model">
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Gemini Model</label>
+            <select id="cfg-gemini-model" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="gemini-1.5-flash">gemini-1.5-flash (Fast, Free, 1M Context Window)</option>
+              <option value="gemini-2.0-flash">gemini-2.0-flash (Latest Speed & Reasoning)</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Complex Reasoning)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Gemini API Key input -->
+        <div id="box-gemini-key" class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-semibold text-slate-700 uppercase">Google Gemini API Key</label>
+            <a href="https://aistudio.google.com/" target="_blank" class="text-xs text-brand-600 hover:underline flex items-center space-x-1">
+              <span>Get Free Key at Google AI Studio</span>
+              <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+          </div>
+          <div class="relative">
+            <input type="password" id="cfg-gemini-key" placeholder="AIzaSy..."
+                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <button type="button" onclick="togglePasswordVisibility('cfg-gemini-key')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p id="gemini-key-status" class="text-xs text-slate-500"></p>
+        </div>
+
+        <!-- Ollama Config Box (Hidden by default) -->
+        <div id="box-ollama" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Ollama Endpoint URL</label>
+            <input type="text" id="cfg-ollama-url" value="http://localhost:11434" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Ollama Model</label>
+            <input type="text" id="cfg-ollama-model" value="llama3.1" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 font-mono">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Card: User Resume Context & Preferences -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
+            <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
+            <span>Your Profile & Resume Context</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-1">
+            The Copilot uses this background to calculate match scores, spot missing tech skills, and personalize recruiter messages.
+          </p>
+        </div>
+
+        <div>
+          <textarea id="cfg-user-profile" rows="8" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition font-sans leading-relaxed"></textarea>
+        </div>
+      </div>
+
+      <!-- Save Button & Toast feedback -->
+      <div class="flex items-center justify-end space-x-3">
+        <span id="settings-feedback" class="text-sm font-medium text-emerald-600 hidden">✓ Settings saved successfully!</span>
+        <button onclick="saveAllSettings()" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-medium text-sm rounded-lg shadow-sm transition active:scale-95 flex items-center space-x-2">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span>Save Settings</span>
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- ================= MODAL: FULL JOB DETAILS ================= -->
+  <div id="modal-job-details" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-200 flex items-start justify-between bg-slate-50">
+        <div>
+          <h3 id="modal-title" class="text-lg font-bold text-slate-900 leading-snug">-</h3>
+          <p id="modal-company" class="text-sm font-medium text-brand-600 mt-0.5">-</p>
+        </div>
+        <button onclick="closeJobModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-4 text-sm text-slate-800">
+        <!-- Badges Bar -->
+        <div class="flex flex-wrap gap-2 text-xs">
+          <span id="modal-badge-location" class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-medium"></span>
+          <span id="modal-badge-workplace" class="px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 font-medium"></span>
+          <span id="modal-badge-source" class="px-2.5 py-1 rounded-md bg-blue-100 text-blue-800 font-medium"></span>
+          <span id="modal-badge-posted" class="px-2.5 py-1 rounded-md bg-purple-100 text-purple-800 font-medium"></span>
+        </div>
+
+        <!-- Recruiter Box if available -->
+        <div id="modal-recruiter-box" class="hidden p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+          <div class="font-bold text-amber-900 text-xs uppercase tracking-wider flex items-center space-x-1">
+            <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+            <span>Hiring Contact Lead</span>
+          </div>
+          <div class="text-xs text-slate-700">
+            <span class="font-semibold" id="modal-recruiter-name">-</span>
+            <span id="modal-recruiter-links" class="ml-2"></span>
+          </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Technologies & Requirements</h4>
+          <div id="modal-tech-stack" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- Description Summary -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Executive Summary</h4>
+          <p id="modal-summary" class="text-slate-600 leading-relaxed italic bg-slate-50 p-3 rounded-lg border border-slate-200"></p>
+        </div>
+
+        <!-- Raw Text -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Posting Description</h4>
+          <div id="modal-raw-text" class="text-xs text-slate-700 whitespace-pre-wrap font-sans bg-slate-50 p-3 rounded-lg border border-slate-200 max-h-60 overflow-y-auto leading-relaxed"></div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <button id="modal-btn-ask-ai" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1.5">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>Ask AI About This Role</span>
+        </button>
+        <div class="flex items-center space-x-2">
+          <button onclick="closeJobModal()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg text-xs sm:text-sm font-medium transition">
+            Close
+          </button>
+          <a id="modal-btn-apply" href="#" target="_blank" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1.5">
+            <span>Open on LinkedIn</span>
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ================= MODAL: SYNC PROGRESS DRAWER ================= -->
+  <div id="modal-sync-progress" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full flex flex-col shadow-2xl overflow-hidden">
+      
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center space-x-2.5">
+          <div id="modal-sync-spinner" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900" id="sync-modal-title">Running LinkedIn Sync...</h3>
+            <p class="text-xs text-slate-500">Executing automated scraping & classification pipeline</p>
+          </div>
+        </div>
+        <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-4 bg-slate-950 text-slate-200 font-mono text-xs max-h-80 overflow-y-auto space-y-1" id="sync-log-box">
+        <div class="text-slate-500">Initializing sync process...</div>
+      </div>
+
+      <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div class="text-xs text-slate-500" id="sync-status-indicator">In progress...</div>
+        <button onclick="closeSyncModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-xs font-medium transition">
+          Dismiss
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
+  <script>
+    // Global Application State
+    let currentTab = 'jobs';
+    let allJobs = [];
+    let briefJobs = [];
+    let viewMode = 'cards'; // 'cards' | 'table'
+    let chatHistory = [];
+    let debounceTimer = null;
+    let syncPoller = null;
+
+    // Initialize application on load
+    document.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      await loadStats();
+      await loadJobs();
+      await loadSettings();
+      await loadBriefJobs();
+      setupChatShortcuts();
+    });
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      currentTab = tabId;
+      ['jobs', 'copilot', 'settings'].forEach(t => {
+        const page = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tabId) {
+          page.classList.remove('hidden');
+          btn.classList.add('bg-brand-50', 'text-brand-600', 'border', 'border-brand-200');
+          btn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+        } else {
+          page.classList.add('hidden');
+          btn.classList.remove('bg-brand-50', 'text-brand-600', 'border', 'border-brand-200');
+          btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+        }
+      });
+      lucide.createIcons();
+      if (tabId === 'copilot') {
+        scrollToBottom();
+      }
+    }
+
+    // View Mode Toggle (Cards vs Table)
+    function setViewMode(mode) {
+      viewMode = mode;
+      const cardsView = document.getElementById('jobs-cards-view');
+      const tableView = document.getElementById('jobs-table-view');
+      const btnCards = document.getElementById('btn-view-cards');
+      const btnTable = document.getElementById('btn-view-table');
+
+      if (mode === 'cards') {
+        cardsView.classList.remove('hidden');
+        tableView.classList.add('hidden');
+        btnCards.classList.add('text-brand-600', 'bg-white', 'shadow-xs');
+        btnCards.classList.remove('text-slate-400');
+        btnTable.classList.remove('text-brand-600', 'bg-white', 'shadow-xs');
+        btnTable.classList.add('text-slate-400');
+      } else {
+        cardsView.classList.add('hidden');
+        tableView.classList.remove('hidden');
+        btnTable.classList.add('text-brand-600', 'bg-white', 'shadow-xs');
+        btnTable.classList.remove('text-slate-400');
+        btnCards.classList.remove('text-brand-600', 'bg-white', 'shadow-xs');
+        btnCards.classList.add('text-slate-400');
+      }
+    }
+
+    // Fetch analytical stats from backend
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        
+        document.getElementById('stat-total-jobs').innerText = data.total_jobs || '0';
+        document.getElementById('stat-feed-posts').innerText = data.feed_post_jobs || '0';
+        document.getElementById('stat-job-board').innerText = data.job_board_jobs || '0';
+        document.getElementById('db-job-count-badge').innerText = `${data.total_jobs || 0} Jobs Active`;
+
+        if (data.top_skills && data.top_skills.length > 0) {
+          document.getElementById('stat-top-skill').innerText = data.top_skills[0].skill;
+        }
+
+        if (data.latest_sync_run && data.latest_sync_run.run_at) {
+          const d = new Date(data.latest_sync_run.run_at);
+          document.getElementById('last-sync-time').innerText = `Last synced: ${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+        }
+      } catch (err) {
+        console.error('Error loading stats:', err);
+      }
+    }
+
+    // Fetch jobs from backend with active filters
+    async function loadJobs() {
+      const search = document.getElementById('filter-search').value.trim();
+      const workplace = document.getElementById('filter-workplace').value;
+      const source = document.getElementById('filter-source').value;
+
+      const params = new URLSearchParams();
+      if (search) params.append('keywords', search);
+      if (workplace && workplace !== 'all') params.append('workplace_type', workplace);
+      if (source && source !== 'all') params.append('source_type', source);
+      params.append('limit', '100');
+
+      try {
+        const res = await fetch(`/api/jobs?${params.toString()}`);
+        const data = await res.json();
+        allJobs = data.jobs || [];
+
+        renderJobs(allJobs);
+      } catch (err) {
+        console.error('Error loading jobs:', err);
+      }
+    }
+
+    function debounceLoadJobs() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadJobs, 250);
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-search').value = '';
+      document.getElementById('filter-workplace').value = 'all';
+      document.getElementById('filter-source').value = 'all';
+      loadJobs();
+    }
+
+    // Render jobs into Card Grid and Table
+    function renderJobs(jobs) {
+      const cardsView = document.getElementById('jobs-cards-view');
+      const tableBody = document.getElementById('jobs-table-body');
+      const emptyState = document.getElementById('jobs-empty-state');
+      const countText = document.getElementById('jobs-count-text');
+
+      countText.innerText = `Showing ${jobs.length} verified opening${jobs.length === 1 ? '' : 's'}`;
+
+      if (jobs.length === 0) {
+        cardsView.innerHTML = '';
+        tableBody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      // 1. Render Cards
+      cardsView.innerHTML = jobs.map(j => {
+        const isFeed = j.source_type === 'feed_post';
+        const sourceBadge = isFeed
+          ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-amber-100 text-amber-800 border border-amber-200">Recruiter Post</span>`
+          : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-100 text-blue-800 border border-blue-200">Job Board</span>`;
+
+        let workplaceColor = 'bg-slate-100 text-slate-700';
+        if (j.workplace_type === 'hybrid') workplaceColor = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+        else if (j.workplace_type === 'remote') workplaceColor = 'bg-purple-50 text-purple-700 border border-purple-200';
+        else if (j.workplace_type === 'onsite') workplaceColor = 'bg-blue-50 text-blue-700 border border-blue-200';
+
+        const skillsHtml = (j.tech_stack || []).slice(0, 4).map(s => 
+          `<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-mono">${escapeHtml(s)}</span>`
+        ).join('');
+
+        let recruiterHtml = '';
+        if (j.hiring_contact_name) {
+          recruiterHtml = `
+            <div class="pt-2 mt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+              <div class="flex items-center space-x-1.5 truncate">
+                <i data-lucide="user-check" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i>
+                <span class="font-medium truncate">${escapeHtml(j.hiring_contact_name)}</span>
+              </div>
+              ${j.hiring_contact_email ? `<span class="text-[10px] bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded font-mono">${escapeHtml(j.hiring_contact_email)}</span>` : ''}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex flex-wrap gap-1.5">
+                  ${sourceBadge}
+                  <span class="px-2 py-0.5 text-[10px] font-semibold rounded-md ${workplaceColor} uppercase">${escapeHtml(j.workplace_type)}</span>
+                </div>
+                <span class="text-[11px] text-slate-400 font-medium whitespace-nowrap">${escapeHtml(j.posted_relative || 'recently')}</span>
+              </div>
+
+              <h3 class="font-bold text-base text-slate-900 hover:text-brand-600 transition cursor-pointer leading-snug" onclick="openJobModal('${j.job_id}')">
+                ${escapeHtml(j.title)}
+              </h3>
+              <p class="text-xs font-semibold text-brand-600 mt-0.5">${escapeHtml(j.company)}</p>
+              
+              <div class="flex items-center space-x-1 text-xs text-slate-500 mt-1.5">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0"></i>
+                <span class="truncate">${escapeHtml(j.location)}</span>
+              </div>
+
+              ${j.description_summary ? `<p class="text-xs text-slate-600 line-clamp-2 mt-2 leading-relaxed">${escapeHtml(j.description_summary)}</p>` : ''}
+              
+              <div class="flex flex-wrap gap-1 mt-3">
+                ${skillsHtml}
+              </div>
+
+              ${recruiterHtml}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <button onclick="askAIBoutJob('${j.job_id}')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition flex items-center space-x-1">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span>Ask AI</span>
+              </button>
+              <div class="flex items-center space-x-2">
+                <button onclick="openJobModal('${j.job_id}')" class="text-xs font-medium text-slate-500 hover:text-slate-800 transition">
+                  Details
+                </button>
+                <a href="${j.source_url}" target="_blank" class="p-1.5 text-brand-600 hover:bg-brand-50 rounded-lg transition" title="Open on LinkedIn">
+                  <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 2. Render Table Rows
+      tableBody.innerHTML = jobs.map(j => {
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4">
+              <div class="font-semibold text-slate-900 cursor-pointer hover:text-brand-600" onclick="openJobModal('${j.job_id}')">${escapeHtml(j.title)}</div>
+              <div class="text-xs text-brand-600">${escapeHtml(j.company)}</div>
+            </td>
+            <td class="py-3 px-4 text-xs text-slate-600 max-w-[150px] truncate">${escapeHtml(j.location)}</td>
+            <td class="py-3 px-4">
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 uppercase">${escapeHtml(j.workplace_type)}</span>
+            </td>
+            <td class="py-3 px-4">
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${j.source_type === 'feed_post' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
+                ${j.source_type === 'feed_post' ? 'Feed Post' : 'Job Board'}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-xs text-slate-600">
+              ${j.hiring_contact_name ? `<span class="font-medium">${escapeHtml(j.hiring_contact_name)}</span>` : '<span class="text-slate-400">-</span>'}
+            </td>
+            <td class="py-3 px-4 text-xs text-slate-500">${escapeHtml(j.posted_relative || 'recently')}</td>
+            <td class="py-3 px-4 text-right">
+              <div class="flex items-center justify-end space-x-1.5">
+                <button onclick="askAIBoutJob('${j.job_id}')" class="p-1 text-indigo-600 hover:bg-indigo-50 rounded" title="Ask AI">
+                  <i data-lucide="sparkles" class="w-4 h-4"></i>
+                </button>
+                <a href="${j.source_url}" target="_blank" class="p-1 text-brand-600 hover:bg-brand-50 rounded" title="Open on LinkedIn">
+                  <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // Load brief jobs list for AI context dropdown
+    async function loadBriefJobs() {
+      try {
+        const res = await fetch('/api/jobs/brief?limit=100');
+        briefJobs = await res.json();
+        
+        const select = document.getElementById('select-target-job');
+        select.innerHTML = '<option value="all">🌐 Entire Database (Query across all jobs)</option>';
+
+        briefJobs.forEach(j => {
+          const opt = document.createElement('option');
+          opt.value = j.job_id;
+          opt.innerText = `${j.company} - ${j.title} (${j.location.split(',')[0]})`;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Error loading brief jobs:', err);
+      }
+    }
+
+    // Target job dropdown changed in Copilot tab
+    function onTargetJobChanged() {
+      const select = document.getElementById('select-target-job');
+      const jobId = select.value;
+      const badge = document.getElementById('target-context-badge');
+      const preview = document.getElementById('selected-job-preview');
+      const subheading = document.getElementById('chat-subheading');
+
+      if (jobId === 'all') {
+        badge.innerText = 'All Database';
+        badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+        preview.classList.add('hidden');
+        subheading.innerText = 'Connected to your local SQLite database (41+ jobs)';
+      } else {
+        const found = briefJobs.find(x => x.job_id === jobId);
+        if (found) {
+          badge.innerText = 'Target Job';
+          badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700';
+          
+          document.getElementById('preview-job-title').innerText = found.title;
+          document.getElementById('preview-job-company').innerText = found.company;
+          document.getElementById('preview-job-location').innerText = `${found.location} (${found.workplace_type})`;
+          
+          const recruiterBox = document.getElementById('preview-job-recruiter-box');
+          if (found.hiring_contact_name) {
+            recruiterBox.classList.remove('hidden');
+            document.getElementById('preview-job-recruiter').innerText = found.hiring_contact_name;
+          } else {
+            recruiterBox.classList.add('hidden');
+          }
+
+          preview.classList.remove('hidden');
+          subheading.innerText = `Focus: ${found.company} - ${found.title}`;
+        }
+      }
+    }
+
+    // Seamless navigation: "Ask AI" button on any job card
+    function askAIBoutJob(jobId) {
+      switchTab('copilot');
+      const select = document.getElementById('select-target-job');
+      select.value = jobId;
+      onTargetJobChanged();
+
+      // Add helper notice in chat
+      const found = briefJobs.find(x => x.job_id === jobId);
+      if (found) {
+        appendMessage('copilot', `🎯 I have loaded the context for **${found.title}** at **${found.company}**.\n\nWhat would you like me to do? You can click **Draft Recruiter Outreach**, **Resume Fit**, or ask any question about this role!`);
+      }
+    }
+
+    // Quick Prompt Buttons
+    function sendQuickPrompt(type) {
+      const select = document.getElementById('select-target-job');
+      const jobId = select.value;
+      const found = briefJobs.find(x => x.job_id === jobId);
+
+      let msg = '';
+      if (type === 'outreach') {
+        if (found) {
+          msg = `Draft a high-converting recruiter outreach strategy for this opening at ${found.company}. Include: 1) A personalized LinkedIn connection request note strictly under 300 characters, and 2) A direct follow-up email/InMail draft highlighting my experience with distributed systems and streaming.`;
+        } else {
+          msg = `Draft a general high-converting LinkedIn recruiter connection request note (strictly under 300 characters) and cold outreach email for Lead Data Engineer openings.`;
+        }
+      } else if (type === 'fit') {
+        if (found) {
+          msg = `Perform an in-depth Resume Fit and Gap Analysis for this opening at ${found.company} based on my target profile. Give an objective match score (0-100%), matching tech stack, potential missing skills, and 3 specific recommendations to tailor my resume.`;
+        } else {
+          msg = `Based on the latest data engineering openings in the database and my profile, what are the top skills I should highlight on my resume to maximize interview callbacks?`;
+        }
+      } else if (type === 'interview') {
+        if (found) {
+          msg = `Generate 5 technical architecture and system design interview questions that ${found.company} is likely to ask for this specific opening based on their posted tech stack and engineering challenges. Include expected architectural discussion points.`;
+        } else {
+          msg = `Generate 5 common senior system design interview questions frequently asked for Lead Data Engineer roles covering PySpark, Kafka, and cloud Lakehouse architectures.`;
+        }
+      } else if (type === 'trends') {
+        msg = `What are the most in-demand data engineering skills, platforms, and architectures trending across the jobs in our database? Which companies in Pune and Bangalore are hiring the most aggressively?`;
+      } else if (type === 'direct_leads') {
+        msg = `List all openings in our database where the recruiter or hiring manager provided their name, LinkedIn profile, or direct email address, along with the company and title.`;
+      }
+
+      if (msg) {
+        document.getElementById('chat-input').value = msg;
+        handleChatSubmit(new Event('submit'));
+      }
+    }
+
+    // Chat submit handler
+    async function handleChatSubmit(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const select = document.getElementById('select-target-job');
+      const targetJobId = select.value;
+
+      // Append user message
+      appendMessage('user', text);
+      input.value = '';
+
+      // Show typing indicator
+      const typing = document.getElementById('chat-typing');
+      typing.classList.remove('hidden');
+      scrollToBottom();
+
+      try {
+        const res = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            target_job_id: targetJobId,
+            history: chatHistory.slice(-8),
+          })
+        });
+
+        const data = await res.json();
+        typing.classList.add('hidden');
+        appendMessage('copilot', data.reply);
+      } catch (err) {
+        typing.classList.add('hidden');
+        appendMessage('copilot', `❌ **Network Error:** Could not connect to the backend server. (${err.message})`);
+      }
+    }
+
+    function appendMessage(role, content) {
+      chatHistory.push({ role, content });
+      const container = document.getElementById('chat-messages');
+
+      const isUser = role === 'user';
+      const div = document.createElement('div');
+      div.className = `flex items-start space-x-3 ${isUser ? 'justify-end' : ''}`;
+
+      let formattedContent = '';
+      if (isUser) {
+        formattedContent = `<div class="bg-indigo-600 text-white rounded-2xl rounded-tr-none px-4 py-2.5 max-w-2xl text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(content)}</div>`;
+      } else {
+        const rawHtml = marked.parse(content);
+        const cleanHtml = DOMPurify.sanitize(rawHtml);
+        
+        formattedContent = `
+          <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 text-xs font-bold">
+            AI
+          </div>
+          <div class="bg-slate-100 border border-slate-200 rounded-2xl rounded-tl-none p-4 max-w-3xl text-sm prose-chat text-slate-800 relative group">
+            ${cleanHtml}
+            <div class="mt-3 pt-2 border-t border-slate-200 flex items-center justify-end">
+              <button onclick="copyTextToClipboard(this)" data-content="${encodeURIComponent(content)}" class="text-xs text-slate-500 hover:text-indigo-600 flex items-center space-x-1 py-1 px-2 rounded hover:bg-slate-200 transition">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                <span>Copy Response</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      div.innerHTML = formattedContent;
+      container.appendChild(div);
+      lucide.createIcons();
+      scrollToBottom();
+    }
+
+    function copyTextToClipboard(btn) {
+      const raw = decodeURIComponent(btn.getAttribute('data-content'));
+      navigator.clipboard.writeText(raw).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<span class="text-emerald-600 font-semibold">✓ Copied!</span>`;
+        setTimeout(() => { btn.innerHTML = orig; lucide.createIcons(); }, 2000);
+      });
+    }
+
+    function clearChat() {
+      chatHistory = [];
+      const container = document.getElementById('chat-messages');
+      container.innerHTML = '';
+      appendMessage('copilot', 'Chat conversation cleared. How can I help you next?');
+    }
+
+    function scrollToBottom() {
+      const container = document.getElementById('chat-messages');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function setupChatShortcuts() {
+      const input = document.getElementById('chat-input');
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleChatSubmit(null);
+        }
+      });
+    }
+
+    // Modal: Full Job Details
+    async function openJobModal(jobId) {
+      try {
+        const res = await fetch(`/api/jobs/${jobId}`);
+        const job = await res.json();
+
+        document.getElementById('modal-title').innerText = job.title;
+        document.getElementById('modal-company').innerText = job.company;
+        document.getElementById('modal-badge-location').innerText = job.location;
+        document.getElementById('modal-badge-workplace').innerText = job.workplace_type.toUpperCase();
+        document.getElementById('modal-badge-source').innerText = job.source_type === 'feed_post' ? 'Recruiter Feed Post' : 'Job Board';
+        document.getElementById('modal-badge-posted').innerText = job.posted_relative || 'recently';
+
+        // Recruiter info
+        const recBox = document.getElementById('modal-recruiter-box');
+        if (job.hiring_contact_name) {
+          recBox.classList.remove('hidden');
+          document.getElementById('modal-recruiter-name').innerText = job.hiring_contact_name;
+          let links = '';
+          if (job.hiring_contact_profile) {
+            links += `<a href="${job.hiring_contact_profile}" target="_blank" class="text-indigo-600 hover:underline font-semibold ml-1">LinkedIn Profile ↗</a>`;
+          }
+          if (job.hiring_contact_email) {
+            links += `<span class="ml-2 font-mono bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-[11px]">${escapeHtml(job.hiring_contact_email)}</span>`;
+          }
+          document.getElementById('modal-recruiter-links').innerHTML = links;
+        } else {
+          recBox.classList.add('hidden');
+        }
+
+        // Tech stack pills
+        const stackBox = document.getElementById('modal-tech-stack');
+        stackBox.innerHTML = (job.tech_stack || []).map(s => 
+          `<span class="px-2.5 py-1 bg-slate-100 text-slate-800 rounded-md text-xs font-mono font-medium">${escapeHtml(s)}</span>`
+        ).join('') || '<span class="text-xs text-slate-400 italic">No explicit skills tagged</span>';
+
+        // Summary and raw text
+        document.getElementById('modal-summary').innerText = job.description_summary || 'No summary available.';
+        document.getElementById('modal-raw-text').innerText = job.raw_text || job.description_summary || 'No description text recorded.';
+
+        // Action links
+        document.getElementById('modal-btn-apply').href = job.source_url;
+        document.getElementById('modal-btn-ask-ai').onclick = () => {
+          closeJobModal();
+          askAIBoutJob(job.job_id);
+        };
+
+        document.getElementById('modal-job-details').classList.remove('hidden');
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error opening job modal:', err);
+      }
+    }
+
+    function closeJobModal() {
+      document.getElementById('modal-job-details').classList.add('hidden');
+    }
+
+    // Modal & Background Sync Execution
+    async function triggerDailySync() {
+      const btn = document.getElementById('btn-sync-now');
+      const icon = document.getElementById('sync-icon');
+      const text = document.getElementById('sync-btn-text');
+
+      btn.disabled = true;
+      icon.classList.add('animate-spin');
+      text.innerText = 'Syncing...';
+
+      // Open sync drawer
+      document.getElementById('modal-sync-progress').classList.remove('hidden');
+      document.getElementById('sync-modal-title').innerText = 'Running LinkedIn Daily Sync...';
+      document.getElementById('sync-log-box').innerHTML = '<div class="text-indigo-400">Initiating automated 2-stage sync pipeline...</div>';
+      document.getElementById('sync-status-indicator').innerText = 'Pipeline running in background...';
+
+      try {
+        await fetch('/api/sync/run', { method: 'POST' });
+        startSyncPolling();
+      } catch (err) {
+        console.error('Sync start failed:', err);
+      }
+    }
+
+    function startSyncPolling() {
+      if (syncPoller) clearInterval(syncPoller);
+      syncPoller = setInterval(async () => {
+        try {
+          const res = await fetch('/api/sync/status');
+          const data = await res.json();
+
+          const logBox = document.getElementById('sync-log-box');
+          if (data.logs && data.logs.length > 0) {
+            logBox.innerHTML = data.logs.map(l => `<div>${escapeHtml(l)}</div>`).join('');
+            logBox.scrollTop = logBox.scrollHeight;
+          }
+
+          if (data.status === 'completed' || data.status === 'error') {
+            clearInterval(syncPoller);
+            syncPoller = null;
+
+            const btn = document.getElementById('btn-sync-now');
+            const icon = document.getElementById('sync-icon');
+            const text = document.getElementById('sync-btn-text');
+            btn.disabled = false;
+            icon.classList.remove('animate-spin');
+            text.innerText = 'Sync Now';
+
+            if (data.status === 'completed') {
+              document.getElementById('sync-modal-title').innerText = '✓ Sync Completed Successfully!';
+              document.getElementById('sync-status-indicator').innerText = 'Database updated with latest jobs.';
+              // Refresh jobs and stats in background
+              loadStats();
+              loadJobs();
+              loadBriefJobs();
+            } else {
+              document.getElementById('sync-modal-title').innerText = '❌ Sync Failed with Error';
+              document.getElementById('sync-status-indicator').innerText = 'Inspect logs above for details.';
+            }
+          }
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }, 1500);
+    }
+
+    function closeSyncModal() {
+      document.getElementById('modal-sync-progress').classList.add('hidden');
+    }
+
+    // Settings Management
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+
+        document.getElementById('cfg-llm-provider').value = data.llm_provider || 'gemini';
+        document.getElementById('cfg-gemini-model').value = data.gemini_model || 'gemini-1.5-flash';
+        document.getElementById('cfg-ollama-url').value = data.ollama_url || 'http://localhost:11434';
+        document.getElementById('cfg-ollama-model').value = data.ollama_model || 'llama3.1';
+        document.getElementById('cfg-user-profile').value = data.user_profile || '';
+
+        // Copilot profile snippet in sidebar
+        document.getElementById('copilot-profile-snippet').innerText = data.user_profile || 'No profile specified yet.';
+
+        const statusLabel = document.getElementById('gemini-key-status');
+        if (data.has_gemini_key) {
+          statusLabel.innerHTML = `<span class="text-emerald-600 font-semibold">✓ API Key Configured</span> (${data.masked_gemini_key})`;
+        } else {
+          statusLabel.innerHTML = `<span class="text-amber-600 font-semibold">⚠️ No Gemini API Key set yet</span> (Enter your key above to enable AI features)`;
+        }
+
+        onProviderChanged();
+      } catch (err) {
+        console.error('Error loading settings:', err);
+      }
+    }
+
+    function onProviderChanged() {
+      const provider = document.getElementById('cfg-llm-provider').value;
+      const boxGeminiKey = document.getElementById('box-gemini-key');
+      const boxGeminiModel = document.getElementById('box-gemini-model');
+      const boxOllama = document.getElementById('box-ollama');
+
+      if (provider === 'gemini') {
+        boxGeminiKey.classList.remove('hidden');
+        boxGeminiModel.classList.remove('hidden');
+        boxOllama.classList.add('hidden');
+      } else {
+        boxGeminiKey.classList.add('hidden');
+        boxGeminiModel.classList.add('hidden');
+        boxOllama.classList.remove('hidden');
+      }
+    }
+
+    async function saveAllSettings() {
+      const provider = document.getElementById('cfg-llm-provider').value;
+      const geminiModel = document.getElementById('cfg-gemini-model').value;
+      const geminiKey = document.getElementById('cfg-gemini-key').value.trim();
+      const ollamaUrl = document.getElementById('cfg-ollama-url').value.trim();
+      const ollamaModel = document.getElementById('cfg-ollama-model').value.trim();
+      const profile = document.getElementById('cfg-user-profile').value.trim();
+
+      const payload = {
+        llm_provider: provider,
+        gemini_model: geminiModel,
+        ollama_url: ollamaUrl,
+        ollama_model: ollamaModel,
+        user_profile: profile,
+      };
+      if (geminiKey) {
+        payload.gemini_api_key = geminiKey;
+      }
+
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        const feedback = document.getElementById('settings-feedback');
+        feedback.classList.remove('hidden');
+        setTimeout(() => { feedback.classList.add('hidden'); }, 3000);
+
+        await loadSettings();
+      } catch (err) {
+        alert('Failed to save settings: ' + err.message);
+      }
+    }
+
+    function togglePasswordVisibility(fieldId) {
+      const field = document.getElementById(fieldId);
+      field.type = field.type === 'password' ? 'text' : 'password';
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

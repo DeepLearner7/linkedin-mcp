@@ -276,6 +276,39 @@ def linkedin_get_connections_count() -> str:
 
 ---
 
+## Web Dashboard & "Ask AI" Career Copilot
+
+Launch the local web dashboard with a single command:
+
+```bash
+linkedin-ui
+```
+*(or `python -m linkedin_mcp.ui.server`)*
+
+Open your browser at **http://127.0.0.1:8000**:
+
+1. **Jobs Discovery Hub**:
+   - Live metrics (Total Stored, Recruiter Leads, Job Board Openings, In-Demand Skills).
+   - Instant search & filtering (keywords, location, workplace model: hybrid/remote/onsite, source).
+   - Toggle between **Cards View** and **Table View**.
+   - Direct recruiter leads with profile links and contact emails.
+   - 1-Click **"⚡ Sync Now"** button with live background progress drawer.
+
+2. **"Ask AI" Career Copilot**:
+   - Grounded directly on your local SQLite database (`jobs.db`) with zero hallucination.
+   - **Target Context Selector**: Focus on an individual job or query across the entire database.
+   - **1-Click Superpowers**:
+     - ✉️ **Draft Recruiter Outreach**: Generates a 300-char LinkedIn connection note and cold email.
+     - ⚡ **Resume Fit & Gap Analysis**: Calculates match score, matching skills, and missing keywords.
+     - 🎯 **5 Technical Interview Questions**: Architecture & system design questions tailored to the JD.
+     - 📊 **In-Demand Tech Trends**: Market overview of Pune & Bangalore data engineering requirements.
+
+3. **Settings & Profile**:
+   - Add your free **Google Gemini API Key** (or use local **Ollama**).
+   - Customize your resume summary and core skills so the Copilot always personalizes responses to your experience.
+
+---
+
 ## Uninstallation (1-Command Cleanup)
 
 To completely uninstall everything (Antigravity & Claude registrations, global CLI symlinks, crontab schedules, `.venv`, and database):
@@ -287,3 +320,4 @@ To completely uninstall everything (Antigravity & Claude registrations, global C
 # Or full purge (including LinkedIn session):
 ./uninstall.sh --purge-all
 ```
+

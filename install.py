@@ -25,12 +25,14 @@ VENV_BIN = VENV_DIR / ("Scripts" if IS_WINDOWS else "bin")
 PYTHON_EXE = VENV_BIN / ("python.exe" if IS_WINDOWS else "python")
 LINKEDIN_EXE = VENV_BIN / ("linkedin-mcp.exe" if IS_WINDOWS else "linkedin-mcp")
 JOBS_CLI_EXE = VENV_BIN / ("linkedin-jobs.exe" if IS_WINDOWS else "linkedin-jobs")
+UI_CLI_EXE = VENV_BIN / ("linkedin-ui.exe" if IS_WINDOWS else "linkedin-ui")
 
 ANTIGRAVITY_CONFIG_DIR = Path.home() / ".gemini" / "config"
 ANTIGRAVITY_CONFIG_FILE = ANTIGRAVITY_CONFIG_DIR / "mcp_config.json"
 CLAUDE_CONFIG_FILE = Path.home() / ".claude.json"
 LOCAL_BIN_DIR = Path.home() / ".local" / "bin"
 GLOBAL_JOBS_CLI = LOCAL_BIN_DIR / ("linkedin-jobs.exe" if IS_WINDOWS else "linkedin-jobs")
+GLOBAL_UI_CLI = LOCAL_BIN_DIR / ("linkedin-ui.exe" if IS_WINDOWS else "linkedin-ui")
 DATA_DIR = Path.home() / ".config" / "linkedin-mcp"
 LAUNCHD_PLIST = Path.home() / "Library" / "LaunchAgents" / "com.linkedin.mcp.sync.plist"
 
@@ -58,16 +60,23 @@ def install_package():
     print("Ensuring Playwright Chromium browser is installed...")
     run_command([str(PYTHON_EXE), "-m", "playwright", "install", "chromium"])
     
-    # Expose global `linkedin-jobs` CLI command in ~/.local/bin
-    if not IS_WINDOWS and JOBS_CLI_EXE.exists():
+    # Expose global CLI commands in ~/.local/bin
+    if not IS_WINDOWS:
         try:
             LOCAL_BIN_DIR.mkdir(parents=True, exist_ok=True)
-            if GLOBAL_JOBS_CLI.is_symlink() or GLOBAL_JOBS_CLI.exists():
-                GLOBAL_JOBS_CLI.unlink()
-            GLOBAL_JOBS_CLI.symlink_to(JOBS_CLI_EXE)
-            print(f"Created global CLI shortcut: {GLOBAL_JOBS_CLI} -> {JOBS_CLI_EXE}")
+            if JOBS_CLI_EXE.exists():
+                if GLOBAL_JOBS_CLI.is_symlink() or GLOBAL_JOBS_CLI.exists():
+                    GLOBAL_JOBS_CLI.unlink()
+                GLOBAL_JOBS_CLI.symlink_to(JOBS_CLI_EXE)
+                print(f"Created global CLI shortcut: {GLOBAL_JOBS_CLI} -> {JOBS_CLI_EXE}")
+
+            if UI_CLI_EXE.exists():
+                if GLOBAL_UI_CLI.is_symlink() or GLOBAL_UI_CLI.exists():
+                    GLOBAL_UI_CLI.unlink()
+                GLOBAL_UI_CLI.symlink_to(UI_CLI_EXE)
+                print(f"Created global UI shortcut:  {GLOBAL_UI_CLI} -> {UI_CLI_EXE}")
         except Exception as e:
-            print(f"Note: Could not symlink {GLOBAL_JOBS_CLI}: {e}")
+            print(f"Note: Could not create global CLI symlinks: {e}")
 
 
 def setup_env_file():
@@ -145,13 +154,15 @@ def unregister(purge_all: bool = False):
         except Exception as e:
             print(f"Error removing from Claude config: {e}")
 
-    # 3. Global CLI shortcut
-    if not IS_WINDOWS and (GLOBAL_JOBS_CLI.is_symlink() or GLOBAL_JOBS_CLI.exists()):
-        try:
-            GLOBAL_JOBS_CLI.unlink()
-            print(f"✓ Removed global CLI shortcut: {GLOBAL_JOBS_CLI}")
-        except Exception as e:
-            pass
+    # 3. Global CLI shortcuts
+    if not IS_WINDOWS:
+        for cli_path in [GLOBAL_JOBS_CLI, GLOBAL_UI_CLI]:
+            if cli_path.is_symlink() or cli_path.exists():
+                try:
+                    cli_path.unlink()
+                    print(f"✓ Removed global CLI shortcut: {cli_path}")
+                except Exception:
+                    pass
 
     # 4. Background crontab schedule
     if not IS_WINDOWS:
@@ -271,6 +282,10 @@ def main():
     print("The 'linkedin' MCP server is now registered globally.")
     print("You can run 'agy' from ANY directory and it will load this server.")
     print("Inside agy, type '/mcp' to verify connection and tools.")
+    print("--------------------------------------------------")
+    print("Global CLI commands available:")
+    print("  • linkedin-ui   : Launch Web Dashboard & Career Copilot (http://127.0.0.1:8000)")
+    print("  • linkedin-jobs : Automated job pipeline & report generator")
     print("--------------------------------------------------")
 
 
