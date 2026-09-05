@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LinkedIn Career Intelligence & Copilot</title>
+  <title>Career Intelligence • Jobs Discovery & AI Copilot</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -20,403 +20,387 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
           },
           colors: {
-            brand: {
-              50: '#eef6ff',
-              100: '#d9ebff',
-              500: '#0a66c2', // LinkedIn blue
-              600: '#004182',
-              700: '#002f5e',
+            dark: {
+              bg: '#090D16',       // Deep matte obsidian
+              card: '#111726',     // Elevated surface
+              cardHover: '#161F33',// Hover surface
+              border: '#1F293D',   // Hairline border
+              borderLight: '#2D3B55',
+              textMuted: '#8493AE',
+            },
+            light: {
+              bg: '#F8FAFC',
+              card: '#FFFFFF',
+              cardHover: '#F1F5F9',
+              border: '#E2E8F0',
+              textMuted: '#64748B',
+            },
+            accent: {
+              indigo: '#6366F1',
+              violet: '#8B5CF6',
+              cyan: '#06B6D4',
+              emerald: '#10B981',
+              amber: '#F59E0B',
+              rose: '#F43F5E',
             }
+          },
+          boxShadow: {
+            'glow-indigo': '0 0 20px -5px rgba(99, 102, 241, 0.35)',
+            'glow-cyan': '0 0 20px -5px rgba(6, 182, 212, 0.35)',
           }
         }
       }
     }
   </script>
   <style>
-    /* Custom scrollbars */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .dark ::-webkit-scrollbar-track { background: #1e293b; }
-    .dark ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-    
-    /* Markdown styling inside chat bubbles */
-    .prose-chat h1, .prose-chat h2, .prose-chat h3 { font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.25rem; color: #1e293b; }
-    .dark .prose-chat h1, .dark .prose-chat h2, .dark .prose-chat h3 { color: #f8fafc; }
-    .prose-chat p { margin-bottom: 0.5rem; line-height: 1.6; }
-    .prose-chat ul, .prose-chat ol { margin-left: 1.25rem; margin-bottom: 0.5rem; }
-    .prose-chat li { list-style-type: disc; margin-bottom: 0.25rem; }
-    .prose-chat strong { font-weight: 600; color: #0f172a; }
-    .dark .prose-chat strong { color: #f1f5f9; }
-    .prose-chat pre { background-color: #0f172a; color: #f8fafc; padding: 0.75rem 1rem; border-radius: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto; margin: 0.5rem 0; position: relative; }
-    .prose-chat code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background-color: rgba(226, 232, 240, 0.7); padding: 0.15rem 0.35rem; border-radius: 0.25rem; }
-    .dark .prose-chat code { background-color: rgba(51, 65, 85, 0.7); }
-    .prose-chat pre code { background: transparent; padding: 0; }
+    /* Sleek Custom scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    .dark ::-webkit-scrollbar-track { background: #090D16; }
+    .dark ::-webkit-scrollbar-thumb { background: #1F293D; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb:hover { background: #2D3B55; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+
+    /* Markdown inside AI response bubbles */
+    .prose-ai h1, .prose-ai h2, .prose-ai h3 { font-weight: 700; margin-top: 0.8rem; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
+    .dark .prose-ai h1, .dark .prose-ai h2, .dark .prose-ai h3 { color: #F8FAFC; }
+    .prose-ai h1, .prose-ai h2, .prose-ai h3 { color: #0F172A; }
+    .prose-ai p { margin-bottom: 0.5rem; line-height: 1.65; }
+    .prose-ai ul, .prose-ai ol { margin-left: 1.25rem; margin-bottom: 0.5rem; }
+    .prose-ai li { list-style-type: disc; margin-bottom: 0.25rem; }
+    .dark .prose-ai strong { color: #FFFFFF; font-weight: 600; }
+    .prose-ai strong { color: #0F172A; font-weight: 600; }
+    .dark .prose-ai pre { background-color: #0B0F19; border: 1px solid #1F293D; color: #E2E8F0; padding: 0.75rem 1rem; border-radius: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; overflow-x: auto; margin: 0.6rem 0; }
+    .prose-ai pre { background-color: #F1F5F9; border: 1px solid #E2E8F0; color: #0F172A; padding: 0.75rem 1rem; border-radius: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; overflow-x: auto; margin: 0.6rem 0; }
+    .dark .prose-ai code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background-color: #1A2234; color: #38BDF8; padding: 0.15rem 0.35rem; border-radius: 0.25rem; }
+    .prose-ai code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background-color: #E2E8F0; color: #0284C7; padding: 0.15rem 0.35rem; border-radius: 0.25rem; }
+    .prose-ai pre code { background: transparent; padding: 0; color: inherit; }
+    .dark .prose-ai blockquote { border-left: 3px solid #6366F1; padding-left: 0.75rem; color: #94A3B8; font-style: italic; margin: 0.5rem 0; }
+    .prose-ai blockquote { border-left: 3px solid #6366F1; padding-left: 0.75rem; color: #475569; font-style: italic; margin: 0.5rem 0; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-light-bg dark:bg-dark-bg text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans antialiased transition-colors duration-200 selection:bg-accent-indigo selection:text-white">
 
-  <!-- ================= TOP NAVIGATION BAR ================= -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <!-- ================= TOP NAVIGATION BAR (Linear Style Glassmorphism) ================= -->
+  <header class="sticky top-0 z-30 backdrop-blur-md bg-white/80 dark:bg-dark-bg/80 border-b border-light-border dark:border-dark-border transition-colors duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-15 flex items-center justify-between py-3">
       
-      <!-- Brand Logo & Title -->
+      <!-- Brand Logo & Clean Title -->
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-brand-500/20">
-          in
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-accent-indigo to-accent-cyan flex items-center justify-center text-white font-bold text-sm shadow-glow-indigo">
+          <i data-lucide="compass" class="w-4 h-4"></i>
         </div>
-        <div>
-          <div class="flex items-center space-x-2">
-            <span class="font-bold text-lg tracking-tight text-slate-900">Career Intelligence</span>
-            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">AI Copilot</span>
-          </div>
-          <p class="text-xs text-slate-500 hidden sm:block">Automated LinkedIn Discovery & Recruiter Intelligence</p>
+        <div class="flex items-center space-x-2">
+          <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">LinkedIn Career Intelligence</span>
+          <span class="text-[10px] uppercase font-mono tracking-wider font-semibold px-2 py-0.5 rounded-md bg-accent-indigo/10 dark:bg-accent-indigo/20 text-accent-indigo border border-accent-indigo/20">
+            Copilot
+          </span>
         </div>
+
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="flex items-center space-x-1 sm:space-x-2">
-        <button id="tab-btn-jobs" onclick="switchTab('jobs')" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg flex items-center space-x-2 transition bg-brand-50 text-brand-600 border border-brand-200">
-          <i data-lucide="briefcase" class="w-4 h-4"></i>
-          <span>Jobs Discovery</span>
+      <!-- Navigation Tabs (Pill Switcher) -->
+      <nav class="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs font-medium">
+        <button id="tab-btn-jobs" onclick="switchTab('jobs')" class="px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition bg-white dark:bg-dark-cardHover text-slate-900 dark:text-white shadow-xs font-semibold">
+          <i data-lucide="briefcase" class="w-3.5 h-3.5 text-accent-indigo"></i>
+          <span>Discovery</span>
         </button>
-        <button id="tab-btn-copilot" onclick="switchTab('copilot')" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg flex items-center space-x-2 transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-          <i data-lucide="sparkles" class="w-4 h-4 text-indigo-500"></i>
-          <span>Ask AI Copilot</span>
+        <button id="tab-btn-copilot" onclick="switchTab('copilot')" class="px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition text-slate-500 dark:text-dark-textMuted hover:text-slate-900 dark:hover:text-white">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-accent-cyan"></i>
+          <span>Ask AI</span>
         </button>
-        <button id="tab-btn-settings" onclick="switchTab('settings')" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg flex items-center space-x-2 transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-          <i data-lucide="settings" class="w-4 h-4"></i>
-          <span class="hidden md:inline">Settings</span>
+        <button id="tab-btn-settings" onclick="switchTab('settings')" class="px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition text-slate-500 dark:text-dark-textMuted hover:text-slate-900 dark:hover:text-white">
+          <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+          <span>Settings</span>
         </button>
       </nav>
 
-      <!-- Right Action Bar: Status Pill & Sync Button -->
-      <div class="flex items-center space-x-3">
-        <div id="db-status-pill" class="hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-medium text-slate-600">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="db-job-count-badge">Loading...</span>
+      <!-- Right Action Bar: Status Indicator, Sync Button, Theme Toggle -->
+      <div class="flex items-center space-x-2.5">
+        
+        <!-- Live DB Count Pill -->
+        <div class="hidden sm:flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs font-mono text-slate-600 dark:text-dark-textMuted">
+          <span class="w-2 h-2 rounded-full bg-accent-emerald animate-pulse"></span>
+          <span id="db-job-count-badge">42 Jobs</span>
         </div>
 
-        <button id="btn-sync-now" onclick="triggerDailySync()" class="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-medium rounded-lg shadow-sm transition transform active:scale-95">
-          <i data-lucide="refresh-cw" id="sync-icon" class="w-4 h-4"></i>
-          <span id="sync-btn-text">Sync Now</span>
+        <!-- Minimalist 1-Click Sync Button -->
+        <button id="btn-sync-now" onclick="triggerDailySync()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-accent-indigo hover:bg-indigo-500 active:scale-95 text-white text-xs font-medium rounded-lg shadow-glow-indigo transition cursor-pointer">
+          <i data-lucide="refresh-cw" id="sync-icon" class="w-3.5 h-3.5"></i>
+          <span id="sync-btn-text">Sync</span>
         </button>
+
+        <!-- Dark/Light Theme Toggle -->
+        <button onclick="toggleTheme()" class="p-1.5 rounded-lg text-slate-500 dark:text-dark-textMuted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card border border-transparent dark:hover:border-dark-border transition" title="Toggle Theme">
+          <i data-lucide="sun" id="theme-icon-sun" class="w-4 h-4 hidden dark:block"></i>
+          <i data-lucide="moon" id="theme-icon-moon" class="w-4 h-4 block dark:hidden"></i>
+        </button>
+
       </div>
 
     </div>
   </header>
 
+
   <!-- ================= MAIN CONTENT CONTAINER ================= -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
 
     <!-- ========================================================================= -->
-    <!-- TAB 1: JOBS DISCOVERY HUB                                                 -->
+    <!-- TAB 1: JOBS DISCOVERY HUB (Clean & Minimalist)                            -->
     <!-- ========================================================================= -->
-    <div id="tab-jobs" class="space-y-6">
+    <div id="tab-jobs" class="space-y-4">
       
-      <!-- Metrics Overview Cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-            <i data-lucide="layers" class="w-5 h-5"></i>
+      <!-- Minimalist Inline Metrics Strip (Replaces bulky cards) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-dark-card border border-light-border dark:border-dark-border text-xs">
+        <div class="flex items-center space-x-4 divide-x divide-light-border dark:divide-dark-border">
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-500 dark:text-dark-textMuted">Openings:</span>
+            <span id="stat-total-jobs" class="font-bold text-slate-900 dark:text-white font-mono">-</span>
           </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Total Stored Openings</p>
-            <h3 id="stat-total-jobs" class="text-xl font-bold text-slate-900">-</h3>
+          <div class="pl-4 flex items-center space-x-2">
+            <span class="text-slate-500 dark:text-dark-textMuted">Recruiter Leads:</span>
+            <span id="stat-feed-posts" class="font-bold text-accent-amber font-mono">-</span>
           </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-            <i data-lucide="message-square" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Recruiter Feed Leads</p>
-            <h3 id="stat-feed-posts" class="text-xl font-bold text-slate-900">-</h3>
+          <div class="pl-4 hidden sm:flex items-center space-x-2">
+            <span class="text-slate-500 dark:text-dark-textMuted">Top Stack:</span>
+            <span id="stat-top-skill" class="font-bold text-accent-cyan font-mono">-</span>
           </div>
         </div>
-
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <i data-lucide="briefcase" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Job Board Postings</p>
-            <h3 id="stat-job-board" class="text-xl font-bold text-slate-900">-</h3>
-          </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-            <i data-lucide="trending-up" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Top In-Demand Skill</p>
-            <h3 id="stat-top-skill" class="text-base font-bold text-slate-900 truncate max-w-[130px]">-</h3>
-          </div>
+        <div class="text-[11px] text-slate-400 dark:text-slate-500 font-mono" id="last-sync-time">
+          Checking sync state...
         </div>
       </div>
 
-      <!-- Search & Filters Bar -->
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-          
-          <!-- Search input -->
-          <div class="relative md:col-span-2">
-            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-            <input type="text" id="filter-search" oninput="debounceLoadJobs()" placeholder="Search title, company, skills (e.g. Spark, Barclays, Lead)..."
-                   class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-          </div>
-
-          <!-- Workplace Type -->
-          <div>
-            <select id="filter-workplace" onchange="loadJobs()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-              <option value="all">All Workplaces</option>
-              <option value="hybrid">Hybrid</option>
-              <option value="remote">Remote</option>
-              <option value="onsite">On-site</option>
-            </select>
-          </div>
-
-          <!-- Source Type -->
-          <div>
-            <select id="filter-source" onchange="loadJobs()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-              <option value="all">All Sources</option>
-              <option value="feed_post">Recruiter Posts (High Outreach Value)</option>
-              <option value="job_board">Official Job Board</option>
-            </select>
-          </div>
-
-          <!-- Reset Filters -->
-          <div class="flex items-center justify-between sm:justify-end space-x-2">
-            <button onclick="resetFilters()" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-1">
-              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-              <span>Reset</span>
-            </button>
-            <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-              <button id="btn-view-cards" onclick="setViewMode('cards')" class="p-1.5 rounded text-brand-600 bg-white shadow-xs" title="Cards View">
-                <i data-lucide="grid" class="w-4 h-4"></i>
-              </button>
-              <button id="btn-view-table" onclick="setViewMode('table')" class="p-1.5 rounded text-slate-400 hover:text-slate-700" title="Table View">
-                <i data-lucide="list" class="w-4 h-4"></i>
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Filter summary indicator -->
-        <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
-          <span id="jobs-count-text">Loading jobs...</span>
-          <span id="last-sync-time" class="italic"></span>
-        </div>
-      </div>
-
-      <!-- Jobs Container (Cards or Table) -->
-      <div id="jobs-container">
-        <!-- Cards View Grid -->
-        <div id="jobs-cards-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <!-- Unified Minimal Filter & Search Bar -->
+      <div class="flex flex-col md:flex-row gap-2.5 items-stretch md:items-center justify-between">
         
-        <!-- Table View (Hidden by default) -->
-        <div id="jobs-table-view" class="hidden bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <!-- Search bar -->
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 dark:text-dark-textMuted absolute left-3.5 top-3"></i>
+          <input type="text" id="filter-search" oninput="debounceLoadJobs()" placeholder="Search title, company, or tech stack (e.g. Spark, Barclays, Lead)..."
+                 class="w-full pl-10 pr-4 py-2 bg-white dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-dark-textMuted focus:outline-none focus:ring-1 focus:ring-accent-indigo focus:border-accent-indigo transition">
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex items-center space-x-2 overflow-x-auto pb-1 md:pb-0">
+          <!-- Workplace -->
+          <select id="filter-workplace" onchange="loadJobs()" class="px-3 py-2 bg-white dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-accent-indigo">
+            <option value="all">All Workplaces</option>
+            <option value="hybrid">Hybrid</option>
+            <option value="remote">Remote</option>
+            <option value="onsite">On-site</option>
+          </select>
+
+          <!-- Source -->
+          <select id="filter-source" onchange="loadJobs()" class="px-3 py-2 bg-white dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-accent-indigo">
+            <option value="all">All Sources</option>
+            <option value="feed_post">Recruiter Posts Only</option>
+            <option value="job_board">Official Job Board</option>
+          </select>
+
+          <!-- Reset Filter -->
+          <button onclick="resetFilters()" class="p-2 rounded-xl bg-white dark:bg-dark-card border border-light-border dark:border-dark-border text-slate-500 dark:text-dark-textMuted hover:text-slate-900 dark:hover:text-white transition" title="Clear Filters">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <!-- View Mode Toggle -->
+          <div class="flex p-0.5 rounded-xl bg-white dark:bg-dark-card border border-light-border dark:border-dark-border">
+            <button id="btn-view-cards" onclick="setViewMode('cards')" class="p-1.5 rounded-lg text-accent-indigo bg-slate-100 dark:bg-dark-cardHover transition" title="Cards View">
+              <i data-lucide="grid" class="w-3.5 h-3.5"></i>
+            </button>
+            <button id="btn-view-table" onclick="setViewMode('table')" class="p-1.5 rounded-lg text-slate-400 dark:text-dark-textMuted hover:text-slate-800 dark:hover:text-white transition" title="Table View">
+              <i data-lucide="list" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Result Counter -->
+      <div class="flex items-center justify-between text-xs text-slate-500 dark:text-dark-textMuted px-1">
+        <span id="jobs-count-text">Loading verified jobs...</span>
+      </div>
+
+      <!-- Jobs Display Container -->
+      <div id="jobs-container">
+        <!-- Cards Grid View -->
+        <div id="jobs-cards-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+
+        <!-- Table View -->
+        <div id="jobs-table-view" class="hidden bg-white dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl overflow-hidden shadow-xs">
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 dark:bg-dark-bg/60 border-b border-light-border dark:border-dark-border text-[11px] font-semibold text-slate-500 dark:text-dark-textMuted uppercase tracking-wider">
                 <tr>
-                  <th class="py-3 px-4">Title & Company</th>
+                  <th class="py-3 px-4">Role & Company</th>
                   <th class="py-3 px-4">Location</th>
                   <th class="py-3 px-4">Workplace</th>
                   <th class="py-3 px-4">Source</th>
-                  <th class="py-3 px-4">Recruiter / Contact</th>
+                  <th class="py-3 px-4">Recruiter</th>
                   <th class="py-3 px-4">Posted</th>
                   <th class="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody id="jobs-table-body" class="divide-y divide-slate-100"></tbody>
+              <tbody id="jobs-table-body" class="divide-y divide-light-border dark:divide-dark-border"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- Empty State (Hidden) -->
-      <div id="jobs-empty-state" class="hidden py-16 text-center bg-white rounded-xl border border-slate-200">
-        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-          <i data-lucide="inbox" class="w-6 h-6"></i>
+      <!-- Empty State -->
+      <div id="jobs-empty-state" class="hidden py-16 text-center bg-white dark:bg-dark-card rounded-2xl border border-light-border dark:border-dark-border">
+        <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-dark-cardHover text-slate-400 dark:text-dark-textMuted flex items-center justify-center mx-auto mb-2">
+          <i data-lucide="inbox" class="w-5 h-5"></i>
         </div>
-        <h4 class="text-base font-semibold text-slate-900">No matching jobs found</h4>
-        <p class="text-sm text-slate-500 max-w-sm mx-auto mt-1">Try adjusting your keyword search or filter settings, or click "Sync Now" to fetch fresh openings.</p>
-        <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-brand-50 text-brand-600 rounded-lg text-sm font-medium hover:bg-brand-100 transition">Clear Filters</button>
+        <h4 class="text-sm font-semibold text-slate-900 dark:text-white">No matching jobs found</h4>
+        <p class="text-xs text-slate-500 dark:text-dark-textMuted max-w-xs mx-auto mt-1">Try clearing filters or hit "Sync" to discover new opportunities.</p>
+        <button onclick="resetFilters()" class="mt-3 px-3 py-1.5 bg-accent-indigo/10 text-accent-indigo hover:bg-accent-indigo/20 rounded-lg text-xs font-medium transition">
+          Clear Filters
+        </button>
       </div>
 
     </div>
 
 
     <!-- ========================================================================= -->
-    <!-- TAB 2: "ASK AI" CAREER COPILOT                                            -->
+    <!-- TAB 2: "ASK AI" CAREER COPILOT (Perplexity / Linear Aesthetic)             -->
     <!-- ========================================================================= -->
-    <div id="tab-copilot" class="hidden h-[calc(100vh-140px)] flex flex-col md:flex-row gap-4">
+    <div id="tab-copilot" class="hidden h-[calc(100vh-125px)] flex flex-col md:flex-row gap-4">
       
-      <!-- Left Sidebar: Target Job Context & Quick Action Pills -->
-      <div class="w-full md:w-80 lg:w-96 flex flex-col gap-4 overflow-y-auto pr-1">
+      <!-- Left Context Sidebar (Slim & Minimalist) -->
+      <div class="w-full md:w-80 flex flex-col gap-3 overflow-y-auto pr-1">
         
-        <!-- Target Job Context Selector Card -->
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
-              <i data-lucide="target" class="w-3.5 h-3.5 text-indigo-500"></i>
-              <span>Grounded Context</span>
+        <!-- Context Card -->
+        <div class="p-3.5 rounded-xl bg-white dark:bg-dark-card border border-light-border dark:border-dark-border space-y-2.5">
+          <div class="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-dark-textMuted">
+            <span class="flex items-center space-x-1">
+              <i data-lucide="crosshair" class="w-3.5 h-3.5 text-accent-cyan"></i>
+              <span>Context Focus</span>
             </span>
-            <span id="target-context-badge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">All Database</span>
+            <span id="target-context-badge" class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-accent-emerald/10 text-accent-emerald">
+              All Database
+            </span>
           </div>
 
-          <!-- Dropdown to select specific target job -->
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Target Opening / Focus:</label>
-            <select id="select-target-job" onchange="onTargetJobChanged()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
-              <option value="all">🌐 Entire Database (Query across all jobs)</option>
+            <select id="select-target-job" onchange="onTargetJobChanged()" class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-accent-indigo">
+              <option value="all">🌐 Entire Database (Query across all)</option>
             </select>
           </div>
 
-          <!-- Preview Card of Selected Job -->
-          <div id="selected-job-preview" class="hidden p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg space-y-1.5 text-xs">
-            <div class="font-bold text-slate-900" id="preview-job-title">-</div>
-            <div class="text-indigo-600 font-medium" id="preview-job-company">-</div>
-            <div class="text-slate-500 flex items-center space-x-1">
-              <i data-lucide="map-pin" class="w-3 h-3"></i>
-              <span id="preview-job-location">-</span>
-            </div>
-            <div id="preview-job-recruiter-box" class="hidden pt-1 border-t border-indigo-100 text-[11px] text-slate-600">
-              <span class="font-semibold text-slate-700">Hiring Contact:</span>
-              <span id="preview-job-recruiter">-</span>
+          <!-- Target Job Preview Banner -->
+          <div id="selected-job-preview" class="hidden p-2.5 rounded-lg bg-accent-indigo/5 dark:bg-accent-indigo/10 border border-accent-indigo/20 text-xs space-y-1">
+            <div class="font-bold text-slate-900 dark:text-white truncate" id="preview-job-title">-</div>
+            <div class="text-accent-indigo font-medium text-[11px]" id="preview-job-company">-</div>
+            <div class="text-slate-500 dark:text-dark-textMuted text-[10px] truncate" id="preview-job-location">-</div>
+            <div id="preview-job-recruiter-box" class="hidden text-[10px] text-accent-amber font-mono pt-1">
+              <span>Contact: </span><span id="preview-job-recruiter">-</span>
             </div>
           </div>
         </div>
 
-        <!-- Quick 1-Click Action Prompts -->
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2.5">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
-            <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
-            <span>1-Click Superpowers</span>
+        <!-- 1-Click Superpowers -->
+        <div class="p-3.5 rounded-xl bg-white dark:bg-dark-card border border-light-border dark:border-dark-border space-y-2">
+          <span class="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-dark-textMuted flex items-center space-x-1">
+            <i data-lucide="zap" class="w-3.5 h-3.5 text-accent-amber"></i>
+            <span>Quick Prompts</span>
           </span>
 
-          <div class="space-y-1.5">
-            <button onclick="sendQuickPrompt('outreach')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-xs text-slate-700 hover:text-indigo-900 transition flex items-center space-x-2">
-              <span class="text-base">✉️</span>
-              <div class="flex-1">
-                <div class="font-semibold">Draft Recruiter Outreach</div>
-                <div class="text-[10px] text-slate-500">300-char LinkedIn note & cold email</div>
+          <div class="space-y-1 text-xs">
+            <button onclick="sendQuickPrompt('outreach')" class="w-full text-left px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-dark-bg hover:bg-accent-indigo/10 dark:hover:bg-accent-indigo/10 border border-light-border dark:border-dark-border hover:border-accent-indigo/30 transition flex items-center space-x-2 text-slate-700 dark:text-slate-200">
+              <span class="text-sm">✉️</span>
+              <div class="truncate">
+                <div class="font-medium truncate">Draft Recruiter Outreach</div>
+                <div class="text-[10px] text-slate-400 dark:text-dark-textMuted truncate">300-char note & email</div>
               </div>
             </button>
 
-            <button onclick="sendQuickPrompt('fit')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 text-xs text-slate-700 hover:text-emerald-900 transition flex items-center space-x-2">
-              <span class="text-base">⚡</span>
-              <div class="flex-1">
-                <div class="font-semibold">Resume Fit & Gap Analysis</div>
-                <div class="text-[10px] text-slate-500">Match score, overlaps & missing skills</div>
+            <button onclick="sendQuickPrompt('fit')" class="w-full text-left px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-dark-bg hover:bg-accent-emerald/10 dark:hover:bg-accent-emerald/10 border border-light-border dark:border-dark-border hover:border-accent-emerald/30 transition flex items-center space-x-2 text-slate-700 dark:text-slate-200">
+              <span class="text-sm">⚡</span>
+              <div class="truncate">
+                <div class="font-medium truncate">Resume Fit & Gap Analysis</div>
+                <div class="text-[10px] text-slate-400 dark:text-dark-textMuted truncate">Score, overlaps & missing skills</div>
               </div>
             </button>
 
-            <button onclick="sendQuickPrompt('interview')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-xs text-slate-700 hover:text-purple-900 transition flex items-center space-x-2">
-              <span class="text-base">🎯</span>
-              <div class="flex-1">
-                <div class="font-semibold">5 Technical Interview Questions</div>
-                <div class="text-[10px] text-slate-500">System architecture tailored to JD stack</div>
+            <button onclick="sendQuickPrompt('interview')" class="w-full text-left px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-dark-bg hover:bg-accent-violet/10 dark:hover:bg-accent-violet/10 border border-light-border dark:border-dark-border hover:border-accent-violet/30 transition flex items-center space-x-2 text-slate-700 dark:text-slate-200">
+              <span class="text-sm">🎯</span>
+              <div class="truncate">
+                <div class="font-medium truncate">5 Technical Interview Questions</div>
+                <div class="text-[10px] text-slate-400 dark:text-dark-textMuted truncate">Architecture tailored to JD</div>
               </div>
             </button>
 
-            <button onclick="sendQuickPrompt('trends')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-xs text-slate-700 hover:text-blue-900 transition flex items-center space-x-2">
-              <span class="text-base">📊</span>
-              <div class="flex-1">
-                <div class="font-semibold">In-Demand Tech Stack Trends</div>
-                <div class="text-[10px] text-slate-500">Pune & Bangalore market overview</div>
-              </div>
-            </button>
-
-            <button onclick="sendQuickPrompt('direct_leads')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-200 text-xs text-slate-700 hover:text-amber-900 transition flex items-center space-x-2">
-              <span class="text-base">📬</span>
-              <div class="flex-1">
-                <div class="font-semibold">Jobs with Recruiter Emails</div>
-                <div class="text-[10px] text-slate-500">Direct hiring manager contacts</div>
+            <button onclick="sendQuickPrompt('trends')" class="w-full text-left px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-dark-bg hover:bg-accent-cyan/10 dark:hover:bg-accent-cyan/10 border border-light-border dark:border-dark-border hover:border-accent-cyan/30 transition flex items-center space-x-2 text-slate-700 dark:text-slate-200">
+              <span class="text-sm">📊</span>
+              <div class="truncate">
+                <div class="font-medium truncate">Tech Stack Trends</div>
+                <div class="text-[10px] text-slate-400 dark:text-dark-textMuted truncate">Pune & Bangalore market</div>
               </div>
             </button>
           </div>
         </div>
 
-        <!-- Saved User Profile Preview -->
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
-              <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i>
-              <span>Active Resume Context</span>
-            </span>
-            <button onclick="switchTab('settings')" class="text-[11px] text-brand-600 hover:underline">Edit</button>
+        <!-- User Profile Pill -->
+        <div class="p-3 rounded-xl bg-white dark:bg-dark-card border border-light-border dark:border-dark-border space-y-1.5 text-xs">
+          <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-dark-textMuted">
+            <span>RESUME PROFILE</span>
+            <button onclick="switchTab('settings')" class="text-accent-indigo hover:underline">Edit</button>
           </div>
-          <p id="copilot-profile-snippet" class="text-xs text-slate-600 line-clamp-3 italic">Loading profile...</p>
+          <p id="copilot-profile-snippet" class="text-[11px] text-slate-600 dark:text-dark-textMuted line-clamp-2 leading-relaxed"></p>
         </div>
 
       </div>
 
-      <!-- Right Area: Interactive Chat Feed & Input Box -->
-      <div class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+      <!-- Right Chat Canvas (Claude / Perplexity Clean Design) -->
+      <div class="flex-1 bg-white dark:bg-dark-card rounded-2xl border border-light-border dark:border-dark-border flex flex-col overflow-hidden shadow-xs">
         
-        <!-- Chat Header -->
-        <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center">
-              <i data-lucide="bot" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-slate-900">Career Copilot</h3>
-              <p id="chat-subheading" class="text-xs text-slate-500">Connected to your local SQLite database</p>
-            </div>
+        <!-- Header -->
+        <div class="px-5 py-2.5 border-b border-light-border dark:border-dark-border flex items-center justify-between bg-slate-50/50 dark:bg-dark-bg/40">
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 rounded-full bg-accent-cyan animate-pulse"></div>
+            <span class="text-xs font-semibold text-slate-900 dark:text-white" id="chat-subheading">Connected to local SQLite database</span>
           </div>
-          <button onclick="clearChat()" class="text-xs text-slate-400 hover:text-slate-600 px-2.5 py-1 rounded hover:bg-slate-200 transition">
-            Clear Conversation
+          <button onclick="clearChat()" class="text-[11px] text-slate-400 dark:text-dark-textMuted hover:text-slate-600 dark:hover:text-white transition">
+            Clear Chat
           </button>
         </div>
 
-        <!-- Chat Messages Scrollable Feed -->
+        <!-- Messages Feed -->
         <div id="chat-messages" class="flex-1 p-5 overflow-y-auto space-y-4">
-          <!-- Initial greeting message -->
+          <!-- Initial welcome -->
           <div class="flex items-start space-x-3">
-            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 text-xs font-bold">
+            <div class="w-7 h-7 rounded-lg bg-accent-indigo/10 dark:bg-accent-indigo/20 text-accent-indigo flex items-center justify-center shrink-0 text-xs font-bold font-mono">
               AI
             </div>
-            <div class="bg-slate-100 border border-slate-200 rounded-2xl rounded-tl-none p-4 max-w-3xl text-sm prose-chat text-slate-800">
-              <p>Hello! I am your <strong>LinkedIn Career Copilot</strong>. I have direct access to every job opening and recruiter feed post in your local database.</p>
-              <p>You can ask me to:</p>
-              <ul>
-                <li><strong>Draft personalized outreach</strong> to recruiters mentioning specific tech stack alignments.</li>
-                <li><strong>Analyze your resume fit</strong> and identify skill gaps against any opening.</li>
-                <li><strong>Generate technical interview & architecture questions</strong> tailored to a job's requirements.</li>
-                <li><strong>Query stored jobs</strong> in natural language (e.g. <em>"Which roles in Pune offer hybrid work and mention Kafka?"</em>).</li>
-              </ul>
-              <p class="text-xs text-slate-500 italic mt-2">Select a target job on the left or try any of the 1-click superpowers to get started!</p>
+            <div class="bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-2xl rounded-tl-none p-4 max-w-3xl text-xs sm:text-sm prose-ai text-slate-700 dark:text-slate-200">
+              <p>Welcome to your <strong>Career Copilot</strong>. I have real-time ground truth access to your 42+ LinkedIn jobs and recruiter posts.</p>
+              <p class="text-slate-500 dark:text-dark-textMuted text-xs">Pick a target job from the left or ask me anything to draft outreach notes, compare tech stacks, or evaluate your fit!</p>
             </div>
           </div>
         </div>
 
-        <!-- Typing Indicator (Hidden by default) -->
-        <div id="chat-typing" class="hidden px-5 py-2 flex items-center space-x-2 text-xs text-indigo-600 font-medium bg-indigo-50/50 border-t border-indigo-100">
-          <span class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce"></span>
-          <span class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.2s]"></span>
-          <span class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.4s]"></span>
-          <span class="ml-1">Copilot is analyzing your database and generating response...</span>
+        <!-- Typing indicator -->
+        <div id="chat-typing" class="hidden px-5 py-2 flex items-center space-x-2 text-xs text-accent-indigo font-medium bg-accent-indigo/5 dark:bg-accent-indigo/10 border-t border-light-border dark:border-dark-border">
+          <span class="w-2 h-2 rounded-full bg-accent-indigo animate-bounce"></span>
+          <span class="w-2 h-2 rounded-full bg-accent-indigo animate-bounce [animation-delay:0.2s]"></span>
+          <span class="w-2 h-2 rounded-full bg-accent-indigo animate-bounce [animation-delay:0.4s]"></span>
+          <span class="ml-1 text-[11px] font-mono">Analyzing database & generating tailored response...</span>
         </div>
 
-        <!-- Input Box -->
-        <div class="p-3 sm:p-4 border-t border-slate-200 bg-white">
+        <!-- Input Bar -->
+        <div class="p-3 border-t border-light-border dark:border-dark-border bg-white dark:bg-dark-card">
           <form onsubmit="handleChatSubmit(event)" class="flex items-end space-x-2">
             <div class="flex-1 relative">
-              <textarea id="chat-input" rows="2" placeholder="Ask Career Copilot anything about stored jobs, outreach, interview prep... (Shift+Enter for newline)"
-                        class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"></textarea>
+              <textarea id="chat-input" rows="2" placeholder="Ask about jobs, draft outreach, prep interview questions... (Enter to send, Shift+Enter for newline)"
+                        class="w-full p-2.5 bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-dark-textMuted focus:outline-none focus:ring-1 focus:ring-accent-indigo resize-none transition"></textarea>
             </div>
-            <button type="submit" id="btn-chat-send" class="h-11 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-sm flex items-center justify-center space-x-1.5 transition shadow-sm active:scale-95">
-              <i data-lucide="send" class="w-4 h-4"></i>
+            <button type="submit" id="btn-chat-send" class="h-10 px-4 bg-accent-indigo hover:bg-indigo-500 text-white rounded-xl font-medium text-xs flex items-center justify-center space-x-1.5 transition shadow-glow-indigo active:scale-95 cursor-pointer">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
               <span class="hidden sm:inline">Send</span>
             </button>
           </form>
@@ -428,98 +412,85 @@
 
 
     <!-- ========================================================================= -->
-    <!-- TAB 3: SETTINGS & RESUME PROFILE                                          -->
+    <!-- TAB 3: SETTINGS (Minimal & Focused)                                      -->
     <!-- ========================================================================= -->
-    <div id="tab-settings" class="hidden max-w-4xl mx-auto space-y-6">
+    <div id="tab-settings" class="hidden max-w-2xl mx-auto space-y-4">
       
-      <!-- Card: LLM Provider & API Keys -->
-      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-card border border-light-border dark:border-dark-border space-y-4 shadow-xs">
         <div>
-          <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-            <i data-lucide="key" class="w-5 h-5 text-brand-600"></i>
-            <span>AI Copilot Provider Configuration</span>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="cpu" class="w-4 h-4 text-accent-indigo"></i>
+            <span>AI Model & API Key</span>
           </h3>
-          <p class="text-xs text-slate-500 mt-1">Configure your LLM provider to power the Ask AI Career Copilot.</p>
+          <p class="text-xs text-slate-500 dark:text-dark-textMuted mt-0.5">Google Gemini API key enables the Career Copilot features.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Provider selection -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">LLM Provider</label>
-            <select id="cfg-llm-provider" onchange="onProviderChanged()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <label class="block text-[11px] font-mono uppercase text-slate-500 dark:text-dark-textMuted mb-1">Provider</label>
+            <select id="cfg-llm-provider" onchange="onProviderChanged()" class="w-full px-3 py-2 bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent-indigo">
               <option value="gemini">Google Gemini (Recommended - Free Tier)</option>
-              <option value="ollama">Ollama (100% Local & Offline)</option>
+              <option value="ollama">Ollama (100% Offline)</option>
             </select>
           </div>
 
-          <!-- Gemini Model selection -->
           <div id="box-gemini-model">
-            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Gemini Model</label>
-            <select id="cfg-gemini-model" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
-              <option value="gemini-3.6-flash">gemini-3.6-flash (Recommended - Fast, Free, High Accuracy)</option>
-              <option value="gemini-3.7-flash">gemini-3.7-flash (Next-Gen Reasoning & Speed)</option>
+            <label class="block text-[11px] font-mono uppercase text-slate-500 dark:text-dark-textMuted mb-1">Gemini Model</label>
+            <select id="cfg-gemini-model" class="w-full px-3 py-2 bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent-indigo">
+              <option value="gemini-3.6-flash">gemini-3.6-flash (Fast, Free, High Accuracy)</option>
+              <option value="gemini-3.7-flash">gemini-3.7-flash (Next-Gen Reasoning)</option>
               <option value="gemini-3.5-flash">gemini-3.5-flash (Standard Balanced)</option>
             </select>
-
           </div>
         </div>
 
-        <!-- Gemini API Key input -->
-        <div id="box-gemini-key" class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-semibold text-slate-700 uppercase">Google Gemini API Key</label>
-            <a href="https://aistudio.google.com/" target="_blank" class="text-xs text-brand-600 hover:underline flex items-center space-x-1">
-              <span>Get Free Key at Google AI Studio</span>
+        <div id="box-gemini-key" class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <label class="text-[11px] font-mono uppercase text-slate-500 dark:text-dark-textMuted">API Key</label>
+            <a href="https://aistudio.google.com/" target="_blank" class="text-accent-indigo hover:underline flex items-center space-x-1 text-[11px]">
+              <span>Get Free Key</span>
               <i data-lucide="external-link" class="w-3 h-3"></i>
             </a>
           </div>
           <div class="relative">
             <input type="password" id="cfg-gemini-key" placeholder="AIzaSy..."
-                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
-            <button type="button" onclick="togglePasswordVisibility('cfg-gemini-key')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
-              <i data-lucide="eye" class="w-4 h-4"></i>
+                   class="w-full px-3 py-2 bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-xl text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent-indigo">
+            <button type="button" onclick="togglePasswordVisibility('cfg-gemini-key')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <i data-lucide="eye" class="w-3.5 h-3.5"></i>
             </button>
           </div>
-          <p id="gemini-key-status" class="text-xs text-slate-500"></p>
+          <p id="gemini-key-status" class="text-[11px] text-slate-500 font-mono"></p>
         </div>
 
-        <!-- Ollama Config Box (Hidden by default) -->
-        <div id="box-ollama" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+        <!-- Ollama Box -->
+        <div id="box-ollama" class="hidden grid grid-cols-2 gap-3 pt-2 border-t border-light-border dark:border-dark-border">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Ollama Endpoint URL</label>
-            <input type="text" id="cfg-ollama-url" value="http://localhost:11434" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 font-mono">
+            <label class="block text-[11px] font-mono uppercase text-slate-500 dark:text-dark-textMuted mb-1">Ollama URL</label>
+            <input type="text" id="cfg-ollama-url" value="http://localhost:11434" class="w-full px-3 py-2 bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-xl text-xs font-mono">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Ollama Model</label>
-            <input type="text" id="cfg-ollama-model" value="llama3.1" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 font-mono">
+            <label class="block text-[11px] font-mono uppercase text-slate-500 dark:text-dark-textMuted mb-1">Model Name</label>
+            <input type="text" id="cfg-ollama-model" value="llama3.1" class="w-full px-3 py-2 bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-xl text-xs font-mono">
           </div>
         </div>
-
       </div>
 
-      <!-- Card: User Resume Context & Preferences -->
-      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+      <!-- Resume Profile -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-card border border-light-border dark:border-dark-border space-y-2.5 shadow-xs">
         <div>
-          <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-            <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
-            <span>Your Profile & Resume Context</span>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <i data-lucide="user-check" class="w-4 h-4 text-accent-emerald"></i>
+            <span>Resume & Background Context</span>
           </h3>
-          <p class="text-xs text-slate-500 mt-1">
-            The Copilot uses this background to calculate match scores, spot missing tech skills, and personalize recruiter messages.
-          </p>
+          <p class="text-xs text-slate-500 dark:text-dark-textMuted mt-0.5">Used by AI to score resume fit and draft personalized messages.</p>
         </div>
-
-        <div>
-          <textarea id="cfg-user-profile" rows="8" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition font-sans leading-relaxed"></textarea>
-        </div>
+        <textarea id="cfg-user-profile" rows="6" class="w-full p-3 bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-xl text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-accent-indigo leading-relaxed"></textarea>
       </div>
 
-      <!-- Save Button & Toast feedback -->
-      <div class="flex items-center justify-end space-x-3">
-        <span id="settings-feedback" class="text-sm font-medium text-emerald-600 hidden">✓ Settings saved successfully!</span>
-        <button onclick="saveAllSettings()" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-medium text-sm rounded-lg shadow-sm transition active:scale-95 flex items-center space-x-2">
-          <i data-lucide="save" class="w-4 h-4"></i>
-          <span>Save Settings</span>
+      <div class="flex items-center justify-end space-x-3 pt-1">
+        <span id="settings-feedback" class="text-xs font-medium text-accent-emerald hidden">✓ Settings saved!</span>
+        <button onclick="saveAllSettings()" class="px-5 py-2 bg-accent-indigo hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow-glow-indigo transition cursor-pointer active:scale-95">
+          Save Settings
         </button>
       </div>
 
@@ -528,75 +499,70 @@
   </main>
 
 
-  <!-- ================= MODAL: FULL JOB DETAILS ================= -->
-  <div id="modal-job-details" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150">
+  <!-- ================= MODAL: MINIMAL JOB DETAILS ================= -->
+  <div id="modal-job-details" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-card rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-light-border dark:border-dark-border overflow-hidden">
       
-      <!-- Modal Header -->
-      <div class="p-5 border-b border-slate-200 flex items-start justify-between bg-slate-50">
+      <!-- Header -->
+      <div class="p-5 border-b border-light-border dark:border-dark-border flex items-start justify-between bg-slate-50/50 dark:bg-dark-bg/40">
         <div>
-          <h3 id="modal-title" class="text-lg font-bold text-slate-900 leading-snug">-</h3>
-          <p id="modal-company" class="text-sm font-medium text-brand-600 mt-0.5">-</p>
+          <h3 id="modal-title" class="text-base font-bold text-slate-900 dark:text-white leading-snug">-</h3>
+          <p id="modal-company" class="text-xs font-semibold text-accent-indigo mt-0.5">-</p>
         </div>
-        <button onclick="closeJobModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200 transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
+        <button onclick="closeJobModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Modal Body -->
-      <div class="p-6 overflow-y-auto space-y-4 text-sm text-slate-800">
-        <!-- Badges Bar -->
-        <div class="flex flex-wrap gap-2 text-xs">
-          <span id="modal-badge-location" class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-medium"></span>
-          <span id="modal-badge-workplace" class="px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 font-medium"></span>
-          <span id="modal-badge-source" class="px-2.5 py-1 rounded-md bg-blue-100 text-blue-800 font-medium"></span>
-          <span id="modal-badge-posted" class="px-2.5 py-1 rounded-md bg-purple-100 text-purple-800 font-medium"></span>
+      <!-- Body -->
+      <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <div class="flex flex-wrap gap-1.5 font-mono text-[10px]">
+          <span id="modal-badge-location" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-dark-bg text-slate-700 dark:text-slate-300"></span>
+          <span id="modal-badge-workplace" class="px-2 py-0.5 rounded-md bg-accent-emerald/10 text-accent-emerald uppercase"></span>
+          <span id="modal-badge-source" class="px-2 py-0.5 rounded-md bg-accent-indigo/10 text-accent-indigo"></span>
+          <span id="modal-badge-posted" class="px-2 py-0.5 rounded-md bg-accent-violet/10 text-accent-violet"></span>
         </div>
 
-        <!-- Recruiter Box if available -->
-        <div id="modal-recruiter-box" class="hidden p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
-          <div class="font-bold text-amber-900 text-xs uppercase tracking-wider flex items-center space-x-1">
-            <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-            <span>Hiring Contact Lead</span>
+        <div id="modal-recruiter-box" class="hidden p-3 rounded-xl bg-accent-amber/10 border border-accent-amber/20 space-y-1">
+          <div class="text-[10px] font-mono uppercase tracking-wider text-accent-amber font-bold flex items-center space-x-1">
+            <i data-lucide="user-check" class="w-3 h-3"></i>
+            <span>Hiring Contact</span>
           </div>
-          <div class="text-xs text-slate-700">
+          <div class="text-xs text-slate-800 dark:text-slate-200">
             <span class="font-semibold" id="modal-recruiter-name">-</span>
             <span id="modal-recruiter-links" class="ml-2"></span>
           </div>
         </div>
 
-        <!-- Tech Stack -->
         <div>
-          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Technologies & Requirements</h4>
-          <div id="modal-tech-stack" class="flex flex-wrap gap-1.5"></div>
+          <h4 class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Key Technologies</h4>
+          <div id="modal-tech-stack" class="flex flex-wrap gap-1"></div>
         </div>
 
-        <!-- Description Summary -->
         <div>
-          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Executive Summary</h4>
-          <p id="modal-summary" class="text-slate-600 leading-relaxed italic bg-slate-50 p-3 rounded-lg border border-slate-200"></p>
+          <h4 class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Summary</h4>
+          <p id="modal-summary" class="text-slate-600 dark:text-dark-textMuted leading-relaxed bg-slate-50 dark:bg-dark-bg p-3 rounded-xl border border-light-border dark:border-dark-border"></p>
         </div>
 
-        <!-- Raw Text -->
         <div>
-          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Posting Description</h4>
-          <div id="modal-raw-text" class="text-xs text-slate-700 whitespace-pre-wrap font-sans bg-slate-50 p-3 rounded-lg border border-slate-200 max-h-60 overflow-y-auto leading-relaxed"></div>
+          <h4 class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Full Post Description</h4>
+          <div id="modal-raw-text" class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-sans bg-slate-50 dark:bg-dark-bg p-3 rounded-xl border border-light-border dark:border-dark-border max-h-48 overflow-y-auto leading-relaxed text-[11px]"></div>
         </div>
       </div>
 
-      <!-- Modal Footer -->
-      <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-        <button id="modal-btn-ask-ai" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1.5">
-          <i data-lucide="sparkles" class="w-4 h-4"></i>
-          <span>Ask AI About This Role</span>
+      <!-- Footer -->
+      <div class="p-4 border-t border-light-border dark:border-dark-border bg-slate-50/50 dark:bg-dark-bg/40 flex items-center justify-between">
+        <button id="modal-btn-ask-ai" class="px-3.5 py-1.5 bg-accent-indigo hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition flex items-center space-x-1.5 shadow-glow-indigo cursor-pointer">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span>Ask AI About Role</span>
         </button>
         <div class="flex items-center space-x-2">
-          <button onclick="closeJobModal()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg text-xs sm:text-sm font-medium transition">
+          <button onclick="closeJobModal()" class="px-3 py-1.5 bg-slate-100 dark:bg-dark-cardHover text-slate-700 dark:text-slate-300 hover:text-slate-900 rounded-lg text-xs font-medium transition">
             Close
           </button>
-          <a id="modal-btn-apply" href="#" target="_blank" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1.5">
+          <a id="modal-btn-apply" href="#" target="_blank" class="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-medium transition flex items-center space-x-1.5">
             <span>Open on LinkedIn</span>
-            <i data-lucide="external-link" class="w-4 h-4"></i>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
           </a>
         </div>
       </div>
@@ -605,32 +571,27 @@
   </div>
 
 
-  <!-- ================= MODAL: SYNC PROGRESS DRAWER ================= -->
-  <div id="modal-sync-progress" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full flex flex-col shadow-2xl overflow-hidden">
+  <!-- ================= MODAL: MINIMAL SYNC DRAWER ================= -->
+  <div id="modal-sync-progress" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-card rounded-2xl max-w-lg w-full flex flex-col shadow-2xl border border-light-border dark:border-dark-border overflow-hidden">
       
-      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-        <div class="flex items-center space-x-2.5">
-          <div id="modal-sync-spinner" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900" id="sync-modal-title">Running LinkedIn Sync...</h3>
-            <p class="text-xs text-slate-500">Executing automated scraping & classification pipeline</p>
-          </div>
+      <div class="p-4 border-b border-light-border dark:border-dark-border flex items-center justify-between bg-slate-50/50 dark:bg-dark-bg/40">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-accent-indigo animate-spin"></i>
+          <h3 class="text-xs font-bold text-slate-900 dark:text-white" id="sync-modal-title">Syncing with LinkedIn...</h3>
         </div>
-        <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200 transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
+        <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <div class="p-4 bg-slate-950 text-slate-200 font-mono text-xs max-h-80 overflow-y-auto space-y-1" id="sync-log-box">
-        <div class="text-slate-500">Initializing sync process...</div>
+      <div class="p-3 bg-dark-bg font-mono text-[11px] text-slate-300 max-h-64 overflow-y-auto space-y-1" id="sync-log-box">
+        <div class="text-dark-textMuted">Starting background worker...</div>
       </div>
 
-      <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-        <div class="text-xs text-slate-500" id="sync-status-indicator">In progress...</div>
-        <button onclick="closeSyncModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-xs font-medium transition">
+      <div class="p-3 border-t border-light-border dark:border-dark-border bg-slate-50/50 dark:bg-dark-bg/40 flex items-center justify-between text-xs">
+        <span class="text-[11px] text-slate-400 font-mono" id="sync-status-indicator">In progress...</span>
+        <button onclick="closeSyncModal()" class="px-3 py-1 bg-slate-200 dark:bg-dark-cardHover text-slate-800 dark:text-slate-200 rounded-lg text-xs font-medium transition">
           Dismiss
         </button>
       </div>
@@ -641,17 +602,37 @@
 
   <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
   <script>
-    // Global Application State
     let currentTab = 'jobs';
     let allJobs = [];
     let briefJobs = [];
-    let viewMode = 'cards'; // 'cards' | 'table'
+    let viewMode = 'cards';
     let chatHistory = [];
     let debounceTimer = null;
     let syncPoller = null;
 
-    // Initialize application on load
+    // Theme Management (Default Dark Mode)
+    function initTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    }
+
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+      lucide.createIcons();
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
+      initTheme();
       lucide.createIcons();
       await loadStats();
       await loadJobs();
@@ -668,12 +649,10 @@
         const btn = document.getElementById(`tab-btn-${t}`);
         if (t === tabId) {
           page.classList.remove('hidden');
-          btn.classList.add('bg-brand-50', 'text-brand-600', 'border', 'border-brand-200');
-          btn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+          btn.className = 'px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition bg-white dark:bg-dark-cardHover text-slate-900 dark:text-white shadow-xs font-semibold';
         } else {
           page.classList.add('hidden');
-          btn.classList.remove('bg-brand-50', 'text-brand-600', 'border', 'border-brand-200');
-          btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+          btn.className = 'px-3.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition text-slate-500 dark:text-dark-textMuted hover:text-slate-900 dark:hover:text-white';
         }
       });
       lucide.createIcons();
@@ -682,7 +661,7 @@
       }
     }
 
-    // View Mode Toggle (Cards vs Table)
+    // View Mode Toggle
     function setViewMode(mode) {
       viewMode = mode;
       const cardsView = document.getElementById('jobs-cards-view');
@@ -693,30 +672,25 @@
       if (mode === 'cards') {
         cardsView.classList.remove('hidden');
         tableView.classList.add('hidden');
-        btnCards.classList.add('text-brand-600', 'bg-white', 'shadow-xs');
-        btnCards.classList.remove('text-slate-400');
-        btnTable.classList.remove('text-brand-600', 'bg-white', 'shadow-xs');
-        btnTable.classList.add('text-slate-400');
+        btnCards.className = 'p-1.5 rounded-lg text-accent-indigo bg-slate-100 dark:bg-dark-cardHover transition';
+        btnTable.className = 'p-1.5 rounded-lg text-slate-400 dark:text-dark-textMuted hover:text-slate-800 dark:hover:text-white transition';
       } else {
         cardsView.classList.add('hidden');
         tableView.classList.remove('hidden');
-        btnTable.classList.add('text-brand-600', 'bg-white', 'shadow-xs');
-        btnTable.classList.remove('text-slate-400');
-        btnCards.classList.remove('text-brand-600', 'bg-white', 'shadow-xs');
-        btnCards.classList.add('text-slate-400');
+        btnTable.className = 'p-1.5 rounded-lg text-accent-indigo bg-slate-100 dark:bg-dark-cardHover transition';
+        btnCards.className = 'p-1.5 rounded-lg text-slate-400 dark:text-dark-textMuted hover:text-slate-800 dark:hover:text-white transition';
       }
     }
 
-    // Fetch analytical stats from backend
+    // Load Stats
     async function loadStats() {
       try {
         const res = await fetch('/api/stats');
         const data = await res.json();
-        
+
         document.getElementById('stat-total-jobs').innerText = data.total_jobs || '0';
         document.getElementById('stat-feed-posts').innerText = data.feed_post_jobs || '0';
-        document.getElementById('stat-job-board').innerText = data.job_board_jobs || '0';
-        document.getElementById('db-job-count-badge').innerText = `${data.total_jobs || 0} Jobs Active`;
+        document.getElementById('db-job-count-badge').innerText = `${data.total_jobs || 0} Jobs`;
 
         if (data.top_skills && data.top_skills.length > 0) {
           document.getElementById('stat-top-skill').innerText = data.top_skills[0].skill;
@@ -724,14 +698,14 @@
 
         if (data.latest_sync_run && data.latest_sync_run.run_at) {
           const d = new Date(data.latest_sync_run.run_at);
-          document.getElementById('last-sync-time').innerText = `Last synced: ${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+          document.getElementById('last-sync-time').innerText = `Synced: ${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
         }
       } catch (err) {
         console.error('Error loading stats:', err);
       }
     }
 
-    // Fetch jobs from backend with active filters
+    // Load Jobs with Filters
     async function loadJobs() {
       const search = document.getElementById('filter-search').value.trim();
       const workplace = document.getElementById('filter-workplace').value;
@@ -747,7 +721,6 @@
         const res = await fetch(`/api/jobs?${params.toString()}`);
         const data = await res.json();
         allJobs = data.jobs || [];
-
         renderJobs(allJobs);
       } catch (err) {
         console.error('Error loading jobs:', err);
@@ -756,7 +729,7 @@
 
     function debounceLoadJobs() {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(loadJobs, 250);
+      debounceTimer = setTimeout(loadJobs, 200);
     }
 
     function resetFilters() {
@@ -766,14 +739,14 @@
       loadJobs();
     }
 
-    // Render jobs into Card Grid and Table
+    // Render Minimalist Cards & Table
     function renderJobs(jobs) {
       const cardsView = document.getElementById('jobs-cards-view');
       const tableBody = document.getElementById('jobs-table-body');
       const emptyState = document.getElementById('jobs-empty-state');
       const countText = document.getElementById('jobs-count-text');
 
-      countText.innerText = `Showing ${jobs.length} verified opening${jobs.length === 1 ? '' : 's'}`;
+      countText.innerText = `Showing ${jobs.length} opening${jobs.length === 1 ? '' : 's'}`;
 
       if (jobs.length === 0) {
         cardsView.innerHTML = '';
@@ -784,77 +757,77 @@
 
       emptyState.classList.add('hidden');
 
-      // 1. Render Cards
+      // 1. Sleek Cards
       cardsView.innerHTML = jobs.map(j => {
         const isFeed = j.source_type === 'feed_post';
-        const sourceBadge = isFeed
-          ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-amber-100 text-amber-800 border border-amber-200">Recruiter Post</span>`
-          : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-100 text-blue-800 border border-blue-200">Job Board</span>`;
+        
+        let workplaceBadge = '';
+        if (j.workplace_type === 'hybrid') {
+          workplaceBadge = '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent-emerald/10 text-accent-emerald font-semibold uppercase">Hybrid</span>';
+        } else if (j.workplace_type === 'remote') {
+          workplaceBadge = '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent-violet/10 text-accent-violet font-semibold uppercase">Remote</span>';
+        } else if (j.workplace_type === 'onsite') {
+          workplaceBadge = '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-dark-bg text-slate-700 dark:text-dark-textMuted font-semibold uppercase">Onsite</span>';
+        }
 
-        let workplaceColor = 'bg-slate-100 text-slate-700';
-        if (j.workplace_type === 'hybrid') workplaceColor = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-        else if (j.workplace_type === 'remote') workplaceColor = 'bg-purple-50 text-purple-700 border border-purple-200';
-        else if (j.workplace_type === 'onsite') workplaceColor = 'bg-blue-50 text-blue-700 border border-blue-200';
+        const sourceTag = isFeed 
+          ? '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent-amber/10 text-accent-amber font-semibold">Post Lead</span>'
+          : '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent-indigo/10 text-accent-indigo font-semibold">Official</span>';
 
-        const skillsHtml = (j.tech_stack || []).slice(0, 4).map(s => 
-          `<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-mono">${escapeHtml(s)}</span>`
+        const skillsHtml = (j.tech_stack || []).slice(0, 3).map(s => 
+          `<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-dark-bg text-slate-600 dark:text-slate-300">${escapeHtml(s)}</span>`
         ).join('');
 
-        let recruiterHtml = '';
+        let recruiterPill = '';
         if (j.hiring_contact_name) {
-          recruiterHtml = `
-            <div class="pt-2 mt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-              <div class="flex items-center space-x-1.5 truncate">
-                <i data-lucide="user-check" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i>
-                <span class="font-medium truncate">${escapeHtml(j.hiring_contact_name)}</span>
-              </div>
-              ${j.hiring_contact_email ? `<span class="text-[10px] bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded font-mono">${escapeHtml(j.hiring_contact_email)}</span>` : ''}
+          recruiterPill = `
+            <div class="pt-2 border-t border-light-border dark:border-dark-border flex items-center justify-between text-[11px] text-slate-500 dark:text-dark-textMuted">
+              <span class="flex items-center space-x-1 truncate text-accent-amber font-medium">
+                <i data-lucide="user-check" class="w-3 h-3 shrink-0"></i>
+                <span class="truncate">${escapeHtml(j.hiring_contact_name)}</span>
+              </span>
+              ${j.hiring_contact_email ? '<span class="text-[9px] font-mono bg-accent-amber/10 text-accent-amber px-1 rounded">Email</span>' : ''}
             </div>
           `;
         }
 
         return `
-          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-3">
+          <div class="group rounded-xl p-4 bg-white dark:bg-dark-card hover:bg-light-cardHover dark:hover:bg-dark-cardHover border border-light-border dark:border-dark-border hover:border-accent-indigo/40 dark:hover:border-accent-indigo/40 transition flex flex-col justify-between space-y-3 shadow-xs">
             <div>
-              <div class="flex items-start justify-between gap-2 mb-2">
-                <div class="flex flex-wrap gap-1.5">
-                  ${sourceBadge}
-                  <span class="px-2 py-0.5 text-[10px] font-semibold rounded-md ${workplaceColor} uppercase">${escapeHtml(j.workplace_type)}</span>
-                </div>
-                <span class="text-[11px] text-slate-400 font-medium whitespace-nowrap">${escapeHtml(j.posted_relative || 'recently')}</span>
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <span class="font-semibold text-accent-indigo truncate mr-2">${escapeHtml(j.company)}</span>
+                <span class="text-slate-400 dark:text-slate-500 font-mono text-[10px] shrink-0">${escapeHtml(j.posted_relative || 'recently')}</span>
               </div>
 
-              <h3 class="font-bold text-base text-slate-900 hover:text-brand-600 transition cursor-pointer leading-snug" onclick="openJobModal('${j.job_id}')">
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white leading-snug cursor-pointer hover:text-accent-indigo transition line-clamp-2" onclick="openJobModal('${j.job_id}')">
                 ${escapeHtml(j.title)}
               </h3>
-              <p class="text-xs font-semibold text-brand-600 mt-0.5">${escapeHtml(j.company)}</p>
-              
-              <div class="flex items-center space-x-1 text-xs text-slate-500 mt-1.5">
-                <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0"></i>
-                <span class="truncate">${escapeHtml(j.location)}</span>
+
+              <div class="flex items-center space-x-1.5 text-[11px] text-slate-500 dark:text-dark-textMuted mt-2">
+                <span class="truncate">${escapeHtml(j.location.split(',')[0])}</span>
+                <span>•</span>
+                ${workplaceBadge}
+                ${sourceTag}
               </div>
 
-              ${j.description_summary ? `<p class="text-xs text-slate-600 line-clamp-2 mt-2 leading-relaxed">${escapeHtml(j.description_summary)}</p>` : ''}
-              
-              <div class="flex flex-wrap gap-1 mt-3">
+              <div class="flex flex-wrap gap-1 mt-2.5">
                 ${skillsHtml}
               </div>
 
-              ${recruiterHtml}
+              ${recruiterPill}
             </div>
 
-            <!-- Action Buttons -->
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-              <button onclick="askAIBoutJob('${j.job_id}')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition flex items-center space-x-1">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <div class="pt-2.5 border-t border-light-border dark:border-dark-border flex items-center justify-between text-xs">
+              <button onclick="askAIBoutJob('${j.job_id}')" class="px-2.5 py-1 rounded-lg bg-accent-indigo/10 hover:bg-accent-indigo text-accent-indigo hover:text-white transition font-medium flex items-center space-x-1 text-[11px] cursor-pointer">
+                <i data-lucide="sparkles" class="w-3 h-3"></i>
                 <span>Ask AI</span>
               </button>
               <div class="flex items-center space-x-2">
-                <button onclick="openJobModal('${j.job_id}')" class="text-xs font-medium text-slate-500 hover:text-slate-800 transition">
+                <button onclick="openJobModal('${j.job_id}')" class="text-[11px] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
                   Details
                 </button>
-                <a href="${j.source_url}" target="_blank" class="p-1.5 text-brand-600 hover:bg-brand-50 rounded-lg transition" title="Open on LinkedIn">
-                  <i data-lucide="external-link" class="w-4 h-4"></i>
+                <a href="${j.source_url}" target="_blank" class="text-slate-400 hover:text-accent-indigo transition" title="Open on LinkedIn">
+                  <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
                 </a>
               </div>
             </div>
@@ -862,34 +835,32 @@
         `;
       }).join('');
 
-      // 2. Render Table Rows
+      // 2. Sleek Table Rows
       tableBody.innerHTML = jobs.map(j => {
         return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="py-3 px-4">
-              <div class="font-semibold text-slate-900 cursor-pointer hover:text-brand-600" onclick="openJobModal('${j.job_id}')">${escapeHtml(j.title)}</div>
-              <div class="text-xs text-brand-600">${escapeHtml(j.company)}</div>
+          <tr class="hover:bg-slate-50 dark:hover:bg-dark-cardHover transition">
+            <td class="py-2.5 px-4">
+              <div class="font-semibold text-slate-900 dark:text-white cursor-pointer hover:text-accent-indigo truncate max-w-xs" onclick="openJobModal('${j.job_id}')">${escapeHtml(j.title)}</div>
+              <div class="text-[11px] text-accent-indigo">${escapeHtml(j.company)}</div>
             </td>
-            <td class="py-3 px-4 text-xs text-slate-600 max-w-[150px] truncate">${escapeHtml(j.location)}</td>
-            <td class="py-3 px-4">
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 uppercase">${escapeHtml(j.workplace_type)}</span>
-            </td>
-            <td class="py-3 px-4">
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${j.source_type === 'feed_post' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
-                ${j.source_type === 'feed_post' ? 'Feed Post' : 'Job Board'}
+            <td class="py-2.5 px-4 text-slate-500 dark:text-dark-textMuted max-w-[130px] truncate">${escapeHtml(j.location.split(',')[0])}</td>
+            <td class="py-2.5 px-4 font-mono text-[10px] uppercase text-slate-600 dark:text-slate-300">${escapeHtml(j.workplace_type)}</td>
+            <td class="py-2.5 px-4 font-mono text-[10px]">
+              <span class="px-1.5 py-0.5 rounded ${j.source_type === 'feed_post' ? 'bg-accent-amber/10 text-accent-amber' : 'bg-accent-indigo/10 text-accent-indigo'}">
+                ${j.source_type === 'feed_post' ? 'Post' : 'Job'}
               </span>
             </td>
-            <td class="py-3 px-4 text-xs text-slate-600">
-              ${j.hiring_contact_name ? `<span class="font-medium">${escapeHtml(j.hiring_contact_name)}</span>` : '<span class="text-slate-400">-</span>'}
+            <td class="py-2.5 px-4 text-slate-600 dark:text-dark-textMuted max-w-[120px] truncate">
+              ${j.hiring_contact_name ? `<span class="text-accent-amber">${escapeHtml(j.hiring_contact_name)}</span>` : '<span class="text-slate-400">-</span>'}
             </td>
-            <td class="py-3 px-4 text-xs text-slate-500">${escapeHtml(j.posted_relative || 'recently')}</td>
-            <td class="py-3 px-4 text-right">
-              <div class="flex items-center justify-end space-x-1.5">
-                <button onclick="askAIBoutJob('${j.job_id}')" class="p-1 text-indigo-600 hover:bg-indigo-50 rounded" title="Ask AI">
-                  <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <td class="py-2.5 px-4 text-slate-400 font-mono text-[10px]">${escapeHtml(j.posted_relative || 'recently')}</td>
+            <td class="py-2.5 px-4 text-right">
+              <div class="flex items-center justify-end space-x-2">
+                <button onclick="askAIBoutJob('${j.job_id}')" class="text-accent-indigo hover:opacity-80 p-1" title="Ask AI">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
                 </button>
-                <a href="${j.source_url}" target="_blank" class="p-1 text-brand-600 hover:bg-brand-50 rounded" title="Open on LinkedIn">
-                  <i data-lucide="external-link" class="w-4 h-4"></i>
+                <a href="${j.source_url}" target="_blank" class="text-slate-400 hover:text-accent-indigo p-1" title="Open on LinkedIn">
+                  <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
                 </a>
               </div>
             </td>
@@ -900,14 +871,14 @@
       lucide.createIcons();
     }
 
-    // Load brief jobs list for AI context dropdown
+    // Load Brief Jobs for AI selector
     async function loadBriefJobs() {
       try {
         const res = await fetch('/api/jobs/brief?limit=100');
         briefJobs = await res.json();
         
         const select = document.getElementById('select-target-job');
-        select.innerHTML = '<option value="all">🌐 Entire Database (Query across all jobs)</option>';
+        select.innerHTML = '<option value="all">🌐 Entire Database (Query across all)</option>';
 
         briefJobs.forEach(j => {
           const opt = document.createElement('option');
@@ -920,7 +891,6 @@
       }
     }
 
-    // Target job dropdown changed in Copilot tab
     function onTargetJobChanged() {
       const select = document.getElementById('select-target-job');
       const jobId = select.value;
@@ -930,18 +900,18 @@
 
       if (jobId === 'all') {
         badge.innerText = 'All Database';
-        badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+        badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-md bg-accent-emerald/10 text-accent-emerald';
         preview.classList.add('hidden');
-        subheading.innerText = 'Connected to your local SQLite database (41+ jobs)';
+        subheading.innerText = 'Connected to local SQLite database';
       } else {
         const found = briefJobs.find(x => x.job_id === jobId);
         if (found) {
           badge.innerText = 'Target Job';
-          badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700';
+          badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-md bg-accent-indigo/10 text-accent-indigo';
           
           document.getElementById('preview-job-title').innerText = found.title;
           document.getElementById('preview-job-company').innerText = found.company;
-          document.getElementById('preview-job-location').innerText = `${found.location} (${found.workplace_type})`;
+          document.getElementById('preview-job-location').innerText = `${found.location.split(',')[0]} (${found.workplace_type})`;
           
           const recruiterBox = document.getElementById('preview-job-recruiter-box');
           if (found.hiring_contact_name) {
@@ -957,21 +927,18 @@
       }
     }
 
-    // Seamless navigation: "Ask AI" button on any job card
     function askAIBoutJob(jobId) {
       switchTab('copilot');
       const select = document.getElementById('select-target-job');
       select.value = jobId;
       onTargetJobChanged();
 
-      // Add helper notice in chat
       const found = briefJobs.find(x => x.job_id === jobId);
       if (found) {
-        appendMessage('copilot', `🎯 I have loaded the context for **${found.title}** at **${found.company}**.\n\nWhat would you like me to do? You can click **Draft Recruiter Outreach**, **Resume Fit**, or ask any question about this role!`);
+        appendMessage('copilot', `🎯 Target job loaded: **${found.title}** at **${found.company}**.\n\nClick **Draft Recruiter Outreach**, **Resume Fit**, or ask any question about this role!`);
       }
     }
 
-    // Quick Prompt Buttons
     function sendQuickPrompt(type) {
       const select = document.getElementById('select-target-job');
       const jobId = select.value;
@@ -980,26 +947,24 @@
       let msg = '';
       if (type === 'outreach') {
         if (found) {
-          msg = `Draft a high-converting recruiter outreach strategy for this opening at ${found.company}. Include: 1) A personalized LinkedIn connection request note strictly under 300 characters, and 2) A direct follow-up email/InMail draft highlighting my experience with distributed systems and streaming.`;
+          msg = `Draft a personalized recruiter outreach for ${found.company}. Include: 1) A 300-char LinkedIn connection note, and 2) A direct follow-up email citing my distributed systems experience.`;
         } else {
-          msg = `Draft a general high-converting LinkedIn recruiter connection request note (strictly under 300 characters) and cold outreach email for Lead Data Engineer openings.`;
+          msg = `Draft a high-converting 300-character LinkedIn connection note and cold outreach email for Lead Data Engineer openings.`;
         }
       } else if (type === 'fit') {
         if (found) {
-          msg = `Perform an in-depth Resume Fit and Gap Analysis for this opening at ${found.company} based on my target profile. Give an objective match score (0-100%), matching tech stack, potential missing skills, and 3 specific recommendations to tailor my resume.`;
+          msg = `Analyze my resume fit for this opening at ${found.company}. Provide match score (0-100%), matching tech stack, potential gaps, and 3 specific resume tailoring suggestions.`;
         } else {
-          msg = `Based on the latest data engineering openings in the database and my profile, what are the top skills I should highlight on my resume to maximize interview callbacks?`;
+          msg = `Based on current openings in the database and my profile, what top 3 skills should I highlight to get maximum interview callbacks?`;
         }
       } else if (type === 'interview') {
         if (found) {
-          msg = `Generate 5 technical architecture and system design interview questions that ${found.company} is likely to ask for this specific opening based on their posted tech stack and engineering challenges. Include expected architectural discussion points.`;
+          msg = `Generate 5 technical architecture & system design interview questions that ${found.company} will likely ask for this role based on the tech stack.`;
         } else {
-          msg = `Generate 5 common senior system design interview questions frequently asked for Lead Data Engineer roles covering PySpark, Kafka, and cloud Lakehouse architectures.`;
+          msg = `Generate 5 technical system design questions frequently asked in Pune/Bangalore for Lead Data Engineer roles covering PySpark & Kafka.`;
         }
       } else if (type === 'trends') {
-        msg = `What are the most in-demand data engineering skills, platforms, and architectures trending across the jobs in our database? Which companies in Pune and Bangalore are hiring the most aggressively?`;
-      } else if (type === 'direct_leads') {
-        msg = `List all openings in our database where the recruiter or hiring manager provided their name, LinkedIn profile, or direct email address, along with the company and title.`;
+        msg = `Summarize in-demand tech stack patterns and top hiring employers across Pune and Bangalore from the database.`;
       }
 
       if (msg) {
@@ -1008,7 +973,7 @@
       }
     }
 
-    // Chat submit handler
+    // Chat Execution
     async function handleChatSubmit(e) {
       if (e) e.preventDefault();
       const input = document.getElementById('chat-input');
@@ -1018,11 +983,9 @@
       const select = document.getElementById('select-target-job');
       const targetJobId = select.value;
 
-      // Append user message
       appendMessage('user', text);
       input.value = '';
 
-      // Show typing indicator
       const typing = document.getElementById('chat-typing');
       typing.classList.remove('hidden');
       scrollToBottom();
@@ -1053,25 +1016,25 @@
 
       const isUser = role === 'user';
       const div = document.createElement('div');
-      div.className = `flex items-start space-x-3 ${isUser ? 'justify-end' : ''}`;
+      div.className = `flex items-start space-x-2.5 ${isUser ? 'justify-end' : ''}`;
 
       let formattedContent = '';
       if (isUser) {
-        formattedContent = `<div class="bg-indigo-600 text-white rounded-2xl rounded-tr-none px-4 py-2.5 max-w-2xl text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(content)}</div>`;
+        formattedContent = `<div class="bg-accent-indigo text-white rounded-2xl rounded-tr-none px-3.5 py-2 max-w-xl text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(content)}</div>`;
       } else {
         const rawHtml = marked.parse(content);
         const cleanHtml = DOMPurify.sanitize(rawHtml);
         
         formattedContent = `
-          <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 text-xs font-bold">
+          <div class="w-7 h-7 rounded-lg bg-accent-indigo/10 dark:bg-accent-indigo/20 text-accent-indigo flex items-center justify-center shrink-0 text-xs font-bold font-mono">
             AI
           </div>
-          <div class="bg-slate-100 border border-slate-200 rounded-2xl rounded-tl-none p-4 max-w-3xl text-sm prose-chat text-slate-800 relative group">
+          <div class="bg-slate-50 dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-2xl rounded-tl-none p-4 max-w-2xl text-xs sm:text-sm prose-ai text-slate-800 dark:text-slate-200 relative group">
             ${cleanHtml}
-            <div class="mt-3 pt-2 border-t border-slate-200 flex items-center justify-end">
-              <button onclick="copyTextToClipboard(this)" data-content="${encodeURIComponent(content)}" class="text-xs text-slate-500 hover:text-indigo-600 flex items-center space-x-1 py-1 px-2 rounded hover:bg-slate-200 transition">
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                <span>Copy Response</span>
+            <div class="mt-2.5 pt-2 border-t border-light-border dark:border-dark-border flex items-center justify-end">
+              <button onclick="copyTextToClipboard(this)" data-content="${encodeURIComponent(content)}" class="text-[11px] text-slate-400 hover:text-accent-indigo flex items-center space-x-1 py-0.5 px-1.5 rounded transition cursor-pointer">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+                <span>Copy</span>
               </button>
             </div>
           </div>
@@ -1088,8 +1051,8 @@
       const raw = decodeURIComponent(btn.getAttribute('data-content'));
       navigator.clipboard.writeText(raw).then(() => {
         const orig = btn.innerHTML;
-        btn.innerHTML = `<span class="text-emerald-600 font-semibold">✓ Copied!</span>`;
-        setTimeout(() => { btn.innerHTML = orig; lucide.createIcons(); }, 2000);
+        btn.innerHTML = `<span class="text-accent-emerald font-semibold text-[11px]">✓ Copied</span>`;
+        setTimeout(() => { btn.innerHTML = orig; lucide.createIcons(); }, 1800);
       });
     }
 
@@ -1097,7 +1060,7 @@
       chatHistory = [];
       const container = document.getElementById('chat-messages');
       container.innerHTML = '';
-      appendMessage('copilot', 'Chat conversation cleared. How can I help you next?');
+      appendMessage('copilot', 'Chat cleared. What role would you like to explore next?');
     }
 
     function scrollToBottom() {
@@ -1115,7 +1078,7 @@
       });
     }
 
-    // Modal: Full Job Details
+    // Modal Details
     async function openJobModal(jobId) {
       try {
         const res = await fetch(`/api/jobs/${jobId}`);
@@ -1125,37 +1088,33 @@
         document.getElementById('modal-company').innerText = job.company;
         document.getElementById('modal-badge-location').innerText = job.location;
         document.getElementById('modal-badge-workplace').innerText = job.workplace_type.toUpperCase();
-        document.getElementById('modal-badge-source').innerText = job.source_type === 'feed_post' ? 'Recruiter Feed Post' : 'Job Board';
+        document.getElementById('modal-badge-source').innerText = job.source_type === 'feed_post' ? 'Recruiter Post' : 'Job Board';
         document.getElementById('modal-badge-posted').innerText = job.posted_relative || 'recently';
 
-        // Recruiter info
         const recBox = document.getElementById('modal-recruiter-box');
         if (job.hiring_contact_name) {
           recBox.classList.remove('hidden');
           document.getElementById('modal-recruiter-name').innerText = job.hiring_contact_name;
           let links = '';
           if (job.hiring_contact_profile) {
-            links += `<a href="${job.hiring_contact_profile}" target="_blank" class="text-indigo-600 hover:underline font-semibold ml-1">LinkedIn Profile ↗</a>`;
+            links += `<a href="${job.hiring_contact_profile}" target="_blank" class="text-accent-indigo hover:underline font-semibold ml-1">LinkedIn ↗</a>`;
           }
           if (job.hiring_contact_email) {
-            links += `<span class="ml-2 font-mono bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-[11px]">${escapeHtml(job.hiring_contact_email)}</span>`;
+            links += `<span class="ml-2 font-mono text-[10px] bg-accent-amber/20 text-accent-amber px-1.5 py-0.5 rounded">${escapeHtml(job.hiring_contact_email)}</span>`;
           }
           document.getElementById('modal-recruiter-links').innerHTML = links;
         } else {
           recBox.classList.add('hidden');
         }
 
-        // Tech stack pills
         const stackBox = document.getElementById('modal-tech-stack');
         stackBox.innerHTML = (job.tech_stack || []).map(s => 
-          `<span class="px-2.5 py-1 bg-slate-100 text-slate-800 rounded-md text-xs font-mono font-medium">${escapeHtml(s)}</span>`
-        ).join('') || '<span class="text-xs text-slate-400 italic">No explicit skills tagged</span>';
+          `<span class="px-2 py-0.5 bg-slate-100 dark:bg-dark-bg text-slate-700 dark:text-slate-300 rounded font-mono text-[10px]">${escapeHtml(s)}</span>`
+        ).join('') || '<span class="text-slate-400 italic text-[11px]">No explicit tags</span>';
 
-        // Summary and raw text
         document.getElementById('modal-summary').innerText = job.description_summary || 'No summary available.';
-        document.getElementById('modal-raw-text').innerText = job.raw_text || job.description_summary || 'No description text recorded.';
+        document.getElementById('modal-raw-text').innerText = job.raw_text || job.description_summary || 'No description recorded.';
 
-        // Action links
         document.getElementById('modal-btn-apply').href = job.source_url;
         document.getElementById('modal-btn-ask-ai').onclick = () => {
           closeJobModal();
@@ -1173,7 +1132,7 @@
       document.getElementById('modal-job-details').classList.add('hidden');
     }
 
-    // Modal & Background Sync Execution
+    // Sync Drawer
     async function triggerDailySync() {
       const btn = document.getElementById('btn-sync-now');
       const icon = document.getElementById('sync-icon');
@@ -1181,19 +1140,18 @@
 
       btn.disabled = true;
       icon.classList.add('animate-spin');
-      text.innerText = 'Syncing...';
+      text.innerText = 'Syncing';
 
-      // Open sync drawer
       document.getElementById('modal-sync-progress').classList.remove('hidden');
-      document.getElementById('sync-modal-title').innerText = 'Running LinkedIn Daily Sync...';
-      document.getElementById('sync-log-box').innerHTML = '<div class="text-indigo-400">Initiating automated 2-stage sync pipeline...</div>';
-      document.getElementById('sync-status-indicator').innerText = 'Pipeline running in background...';
+      document.getElementById('sync-modal-title').innerText = 'Running Daily LinkedIn Sync...';
+      document.getElementById('sync-log-box').innerHTML = '<div class="text-accent-cyan">Starting pipeline...</div>';
+      document.getElementById('sync-status-indicator').innerText = 'Scraping in background...';
 
       try {
         await fetch('/api/sync/run', { method: 'POST' });
         startSyncPolling();
       } catch (err) {
-        console.error('Sync start failed:', err);
+        console.error('Sync failed:', err);
       }
     }
 
@@ -1219,18 +1177,17 @@
             const text = document.getElementById('sync-btn-text');
             btn.disabled = false;
             icon.classList.remove('animate-spin');
-            text.innerText = 'Sync Now';
+            text.innerText = 'Sync';
 
             if (data.status === 'completed') {
-              document.getElementById('sync-modal-title').innerText = '✓ Sync Completed Successfully!';
-              document.getElementById('sync-status-indicator').innerText = 'Database updated with latest jobs.';
-              // Refresh jobs and stats in background
+              document.getElementById('sync-modal-title').innerText = '✓ Sync Finished Successfully';
+              document.getElementById('sync-status-indicator').innerText = 'Database updated.';
               loadStats();
               loadJobs();
               loadBriefJobs();
             } else {
-              document.getElementById('sync-modal-title').innerText = '❌ Sync Failed with Error';
-              document.getElementById('sync-status-indicator').innerText = 'Inspect logs above for details.';
+              document.getElementById('sync-modal-title').innerText = '❌ Sync Failed';
+              document.getElementById('sync-status-indicator').innerText = 'Check logs.';
             }
           }
         } catch (err) {
@@ -1243,7 +1200,7 @@
       document.getElementById('modal-sync-progress').classList.add('hidden');
     }
 
-    // Settings Management
+    // Settings
     async function loadSettings() {
       try {
         const res = await fetch('/api/settings');
@@ -1252,18 +1209,16 @@
         document.getElementById('cfg-llm-provider').value = data.llm_provider || 'gemini';
         document.getElementById('cfg-gemini-model').value = data.gemini_model || 'gemini-3.6-flash';
         document.getElementById('cfg-ollama-url').value = data.ollama_url || 'http://localhost:11434';
-
         document.getElementById('cfg-ollama-model').value = data.ollama_model || 'llama3.1';
         document.getElementById('cfg-user-profile').value = data.user_profile || '';
 
-        // Copilot profile snippet in sidebar
-        document.getElementById('copilot-profile-snippet').innerText = data.user_profile || 'No profile specified yet.';
+        document.getElementById('copilot-profile-snippet').innerText = data.user_profile || 'No profile set.';
 
         const statusLabel = document.getElementById('gemini-key-status');
         if (data.has_gemini_key) {
-          statusLabel.innerHTML = `<span class="text-emerald-600 font-semibold">✓ API Key Configured</span> (${data.masked_gemini_key})`;
+          statusLabel.innerHTML = `<span class="text-accent-emerald">✓ Key Configured (${data.masked_gemini_key})</span>`;
         } else {
-          statusLabel.innerHTML = `<span class="text-amber-600 font-semibold">⚠️ No Gemini API Key set yet</span> (Enter your key above to enable AI features)`;
+          statusLabel.innerHTML = `<span class="text-accent-amber">⚠️ No Key set</span>`;
         }
 
         onProviderChanged();
@@ -1304,21 +1259,18 @@
         ollama_model: ollamaModel,
         user_profile: profile,
       };
-      if (geminiKey) {
-        payload.gemini_api_key = geminiKey;
-      }
+      if (geminiKey) payload.gemini_api_key = geminiKey;
 
       try {
-        const res = await fetch('/api/settings', {
+        await fetch('/api/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        const result = await res.json();
 
         const feedback = document.getElementById('settings-feedback');
         feedback.classList.remove('hidden');
-        setTimeout(() => { feedback.classList.add('hidden'); }, 3000);
+        setTimeout(() => { feedback.classList.add('hidden'); }, 2500);
 
         await loadSettings();
       } catch (err) {
