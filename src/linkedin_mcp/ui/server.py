@@ -6,7 +6,9 @@ import asyncio
 import logging
 import os
 import sys
+import threading
 import webbrowser
+
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -263,9 +265,12 @@ def main():
     print("=" * 60 + "\n")
 
     if not args.no_browser:
-        asyncio.get_event_loop().call_later(1.0, lambda: webbrowser.open(url))
+        timer = threading.Timer(1.0, lambda: webbrowser.open(url))
+        timer.daemon = True
+        timer.start()
 
     uvicorn.run("linkedin_mcp.ui.server:app", host=args.host, port=args.port, reload=False)
+
 
 
 if __name__ == "__main__":
