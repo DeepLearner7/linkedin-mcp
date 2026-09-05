@@ -82,19 +82,20 @@ async def run_job_sync(
     else:
         query_kw = '"Senior Data Engineer"'
 
-    # For Recruiter Feed Posts: LinkedIn content search behaves best with concise, unnested queries
-    # e.g., 'hiring "Data Engineer" Pune' rather than complex multi-clause Boolean expressions
-    feed_term = "Data Engineer"
-    for k in keyword_list:
-        clean_k = k.lower().replace("senior", "").replace("lead", "").strip()
-        if "data engineer" in clean_k:
-            feed_term = "Data Engineer"
-            break
-        elif "platform" in clean_k:
-            feed_term = "Data Platform"
-            break
-    if not keyword_list:
-        feed_term = "Data Engineer"
+    # For Recruiter Feed Posts: Generate high-yield, targeted search terms
+    # e.g., 'Data Engineer', 'Data Platform'
+    feed_terms: List[str] = []
+    has_data_engineer = any("data engineer" in k.lower() for k in keyword_list)
+    has_platform = any("platform" in k.lower() for k in keyword_list)
+    has_lead = any("lead" in k.lower() or "manager" in k.lower() for k in keyword_list)
+
+    if has_data_engineer:
+        feed_terms.append("Data Engineer")
+    if has_platform or has_lead:
+        feed_terms.append("Data Platform" if has_platform else "Data Engineering Lead")
+
+    if not feed_terms:
+        feed_terms = [keyword_list[0].strip('"')] if keyword_list else ["Data Engineer"]
 
     async with async_playwright() as p:
         browser, context = await launch_stealth_context(p, headless=True)
@@ -148,56 +149,57 @@ async def run_job_sync(
 
                 # 2. Scrape Recruiter Feed Posts
                 if include_feed_posts:
-                    post_query = f'hiring "{feed_term}" {loc}'
-                    logger.info("Searching Feed Posts for '%s'...", post_query)
-                    try:
-                        raw_posts = await search_feed_posts(
-                            page=page,
-                            keywords=post_query,
-                            limit=15,
-                            sort_by="date_posted",
-                            date_posted="past-week",
-                        )
+                    for feed_term in feed_terms:
+                        post_query = f'hiring "{feed_term}" {loc}'
+                        logger.info("Searching Feed Posts for '%s' (limit=%d, window=%s)...", post_query, limit, date_posted)
+                        try:
+                            raw_posts = await search_feed_posts(
+                                page=page,
+                                keywords=post_query,
+                                limit=limit,
+                                sort_by="date_posted",
+                                date_posted=date_posted,
+                            )
 
-                        for post in raw_posts:
-                            text = post.get("text", "")
-                            if not text or len(text.strip()) < 15:
-                                continue
+                            for post in raw_posts:
+                                text = post.get("text") or post.get("post_text", "")
+                                if not text or len(text.strip()) < 15:
+                                    continue
 
-                            post_url = post.get("post_url", "")
-                            author = post.get("author_name", "Recruiter")
-                            author_url = post.get("author_url", "")
-                            headline = post.get("headline", "")
+                                post_url = post.get("post_url", "")
+                                author = post.get("author_name", "Recruiter")
+                                author_url = post.get("author_url") or post.get("author_profile_url", "")
+                                headline = post.get("headline") or post.get("author_headline", "")
 
-                            post_id = generate_job_id(SourceType.FEED_POST, post_url, feed_term, author)
-                            if post_id in seen_job_ids:
-                                continue
-                            seen_job_ids.add(post_id)
+                                post_id = generate_job_id(SourceType.FEED_POST, post_url, feed_term, author)
+                                if post_id in seen_job_ids:
+                                    continue
+                                seen_job_ids.add(post_id)
 
-                            emails = extract_emails(text)
-                            urls = extract_urls(text)
-                            skills = match_tech_stack(text)
-                            exp_years = extract_experience_years(text)
-                            workplace = _detect_workplace_type(text)
+                                emails = extract_emails(text)
+                                urls = extract_urls(text)
+                                skills = match_tech_stack(text)
+                                exp_years = extract_experience_years(text)
+                                workplace = _detect_workplace_type(text)
 
-                            # Stage candidate post for Stage 2 Antigravity AI classification
-                            candidate_feed_posts.append({
-                                "post_id": post_id,
-                                "author_name": author,
-                                "author_url": author_url,
-                                "headline": headline,
-                                "post_url": post_url,
-                                "target_location": loc,
-                                "target_role": feed_term,
-                                "text": text,
-                                "suggested_emails": emails,
-                                "suggested_urls": urls,
-                                "suggested_skills": skills,
-                                "suggested_exp_years": exp_years,
-                                "suggested_workplace": workplace.value,
-                            })
-                    except Exception as e:
-                        logger.warning("Error scraping Feed Posts for '%s': %s", post_query, e)
+                                # Stage candidate post for Stage 2 Antigravity AI classification
+                                candidate_feed_posts.append({
+                                    "post_id": post_id,
+                                    "author_name": author,
+                                    "author_url": author_url,
+                                    "headline": headline,
+                                    "post_url": post_url,
+                                    "target_location": loc,
+                                    "target_role": feed_term,
+                                    "text": text,
+                                    "suggested_emails": emails,
+                                    "suggested_urls": urls,
+                                    "suggested_skills": skills,
+                                    "suggested_exp_years": exp_years,
+                                    "suggested_workplace": workplace.value,
+                                })
+                        except Exception as e:
+                            logger.warning("Error scraping Feed Posts for '%s': %s", post_query, e)
 
         finally:
             await browser.close()

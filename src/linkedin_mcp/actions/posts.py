@@ -54,10 +54,24 @@ async def search_feed_posts(
     await page.goto(url, wait_until="domcontentloaded", timeout=30000)
     await human_delay(1.5, 2.2)
 
-    # Scroll down to trigger lazy loaded cards
-    for _ in range(3):
+    # Dynamic scroll loop: load enough post cards to satisfy target limit
+    card_selector = (
+        "div[componentkey*='update-card'], "
+        "div[role='listitem'][componentkey*='update'], "
+        "div[data-urn*='urn:li:activity'], "
+        "div.feed-shared-update-v2, "
+        "div[data-view-name='search-entity-result-universal-template']"
+    )
+    max_scrolls = min(max(limit // 2, 4), 10)
+    for scroll_idx in range(max_scrolls):
+        card_count = await page.evaluate(f"() => document.querySelectorAll(`{card_selector}`).length")
+        if card_count >= limit:
+            break
         await page.evaluate("window.scrollBy(0, window.innerHeight * 1.5)")
-        await human_delay(0.8, 1.2)
+        await human_delay(0.6, 1.0)
+        new_count = await page.evaluate(f"() => document.querySelectorAll(`{card_selector}`).length")
+        if new_count == card_count and scroll_idx >= 3:
+            break
 
     # Auto-expand "...see more" buttons so full post text, contact emails, and requirements are rendered
     try:
