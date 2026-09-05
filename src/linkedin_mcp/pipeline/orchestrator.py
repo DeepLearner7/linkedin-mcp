@@ -182,6 +182,8 @@ async def run_job_sync(
                                 exp_years = extract_experience_years(text)
                                 workplace = _detect_workplace_type(text)
 
+                                posted_rel = post.get("posted_relative") or "recently"
+
                                 # Stage candidate post for Stage 2 Antigravity AI classification
                                 candidate_feed_posts.append({
                                     "post_id": post_id,
@@ -192,6 +194,7 @@ async def run_job_sync(
                                     "target_location": loc,
                                     "target_role": feed_term,
                                     "text": text,
+                                    "posted_relative": posted_rel,
                                     "suggested_emails": emails,
                                     "suggested_urls": urls,
                                     "suggested_skills": skills,

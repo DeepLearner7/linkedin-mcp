@@ -25,6 +25,40 @@ def _parse_count(text: str) -> int:
     return int(match.group(1)) if match else 0
 
 
+def parse_relative_time(raw_text: str) -> str:
+    """Normalize relative time string (e.g. '1d • Edited' -> '1 day ago', '3h' -> '3 hours ago')."""
+    if not raw_text:
+        return "recently"
+    lower = raw_text.lower().strip()
+    if "just now" in lower or lower == "now":
+        return "just now"
+    if "yesterday" in lower:
+        return "1 day ago"
+
+    # 1. Match full expressions like '1 day ago', '2 weeks ago', '5 hours ago'
+    m_full = re.search(r"(\d+)\s*(minute|hour|day|week|month|year)s?\s*ago", lower)
+    if m_full:
+        num, unit = m_full.group(1), m_full.group(2)
+        return f"{num} {unit}{'s' if int(num) > 1 else ''} ago"
+
+    # 2. Match abbreviated LinkedIn badges like '2d •', '5h •', '1w •', '30m •'
+    m_abbrev = re.search(r"\b(\d+)\s*(m|h|d|w|mo|yr)\b", lower)
+    if m_abbrev:
+        num, unit_code = m_abbrev.group(1), m_abbrev.group(2)
+        unit_map = {
+            "m": "minute",
+            "h": "hour",
+            "d": "day",
+            "w": "week",
+            "mo": "month",
+            "yr": "year",
+        }
+        unit_name = unit_map.get(unit_code, "day")
+        return f"{num} {unit_name}{'s' if int(num) > 1 else ''} ago"
+
+    return "recently"
+
+
 async def search_feed_posts(
     page: Page,
     keywords: str,
@@ -177,6 +211,24 @@ async def search_feed_posts(
         elif author_url:
             post_url = f"{author_url.rstrip('/')}/recent-activity/all/"
 
+        # Relative Posted Time
+        posted_relative = "recently"
+        sub_desc = card.select_one(".update-components-actor__sub-description, .feed-shared-actor__sub-description")
+        if sub_desc:
+            vh = sub_desc.select_one(".visually-hidden")
+            raw_time = vh.get_text(strip=True) if vh else sub_desc.get_text(separator=" ", strip=True)
+            posted_relative = parse_relative_time(raw_time)
+        else:
+            time_elem = card.find("time")
+            if time_elem:
+                posted_relative = parse_relative_time(time_elem.get_text(strip=True) or time_elem.get("datetime", ""))
+            else:
+                for a_tag in card.find_all("a"):
+                    al = a_tag.get("aria-label", "") or a_tag.get("title", "")
+                    if any(w in al.lower() for w in ["ago", "hour", "day", "week", "month", "minute"]):
+                        posted_relative = parse_relative_time(al)
+                        break
+
         # Post Content / Text
         post_text = ""
         text_elem = card.select_one(
@@ -247,6 +299,7 @@ async def search_feed_posts(
             "author_headline": headline,
             "author_profile_url": author_url,
             "post_text": post_text[:600] + ("..." if len(post_text) > 600 else ""),
+            "posted_relative": posted_relative,
             "reactions_count": reactions,
             "comments_count": comments,
             "engagement_score": score,

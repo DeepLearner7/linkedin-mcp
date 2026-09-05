@@ -58,7 +58,7 @@ run_sync() {
 2. For each post, perform semantic classification:
    - Determine whether the post author is actively HIRING for a Senior Data Engineer, Senior Data Platform Engineer, Data Engineering Lead, or data team role in Pune or Bangalore.
    - Filter out non-hiring noise: job seekers (#opentowork, seeking opportunities), celebrating new roles, course advertisements, agency marketing, and general tech commentary.
-   - For every verified hiring opening, extract: title (e.g. 'Senior Data Engineer (Recruiter Post)'), company, location, workplace_type ('remote', 'hybrid', 'onsite'), tech_stack (list of skills), hiring_contact_name, hiring_contact_profile, hiring_contact_email, and description_summary.
+   - For every verified hiring opening, extract: title (e.g. 'Senior Data Engineer (Recruiter Post)'), company, location, workplace_type ('remote', 'hybrid', 'onsite'), tech_stack (list of skills), posted_relative (preserve from candidate post e.g. '2 days ago'), hiring_contact_name, hiring_contact_profile, hiring_contact_email, and description_summary.
    - Call the MCP tool 'linkedin_save_parsed_jobs' with the verified jobs list to store them into SQLite.
 3. Review the combined openings (Job Board from ${REPORT_FILE} and newly verified Recruiter posts).
 4. Produce a high-value Executive Briefing:
