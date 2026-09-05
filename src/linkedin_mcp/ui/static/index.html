@@ -154,9 +154,21 @@
         <!-- Search Input -->
         <div class="relative flex-1">
           <i data-lucide="search" class="w-4 h-4 text-slate-400 dark:text-dark-textMuted absolute left-3.5 top-2.5"></i>
-          <input type="text" id="filter-search" oninput="debounceLoadJobs()" placeholder="Search title, company, or stack (e.g. Spark, Barclays, Lead)..."
-                 class="w-full pl-10 pr-4 py-1.5 bg-white dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-dark-textMuted focus:outline-none focus:ring-1 focus:ring-accent-indigo transition">
+          <input type="text"
+                 id="filter-search"
+                 name="search_jobs_no_autofill"
+                 autocomplete="off"
+                 autocorrect="off"
+                 autocapitalize="off"
+                 spellcheck="false"
+                 oninput="debounceLoadJobs()"
+                 placeholder="Search title, company, or stack (e.g. Spark, Barclays, Lead)..."
+                 class="w-full pl-10 pr-8 py-1.5 bg-white dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-dark-textMuted focus:outline-none focus:ring-1 focus:ring-accent-indigo transition">
+          <button id="btn-clear-search" onclick="clearSearchInput()" class="hidden absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer" title="Clear search">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
         </div>
+
 
         <!-- Filters Strip -->
         <div class="flex items-center space-x-2 overflow-x-auto">
@@ -525,12 +537,30 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
+
+      // Ensure browser autofill does not populate the search filter
+      const searchInput = document.getElementById('filter-search');
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.addEventListener('input', () => { searchInput.dataset.userTyped = 'true'; });
+      }
+      setTimeout(() => {
+        if (searchInput && !searchInput.dataset.userTyped) searchInput.value = '';
+      }, 150);
+
       lucide.createIcons();
       await loadStats();
       await loadJobs();
       await loadSettings();
       await loadBriefJobs();
       setupChatShortcuts();
+    });
+
+    window.addEventListener('pageshow', () => {
+      const searchInput = document.getElementById('filter-search');
+      if (searchInput && !searchInput.dataset.userTyped) {
+        searchInput.value = '';
+      }
     });
 
     // Tab Navigation
@@ -618,12 +648,37 @@
     }
 
     function debounceLoadJobs() {
+      const searchVal = document.getElementById('filter-search').value;
+      const clearBtn = document.getElementById('btn-clear-search');
+      if (clearBtn) {
+        if (searchVal) {
+          clearBtn.classList.remove('hidden');
+        } else {
+          clearBtn.classList.add('hidden');
+        }
+      }
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(loadJobs, 200);
     }
 
+    function clearSearchInput() {
+      const searchInput = document.getElementById('filter-search');
+      const clearBtn = document.getElementById('btn-clear-search');
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+      if (clearBtn) {
+        clearBtn.classList.add('hidden');
+      }
+      loadJobs();
+    }
+
     function resetFilters() {
-      document.getElementById('filter-search').value = '';
+      const searchInput = document.getElementById('filter-search');
+      const clearBtn = document.getElementById('btn-clear-search');
+      if (searchInput) searchInput.value = '';
+      if (clearBtn) clearBtn.classList.add('hidden');
       document.getElementById('filter-workplace').value = 'all';
       document.getElementById('filter-source').value = 'all';
       loadJobs();
