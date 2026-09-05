@@ -38,13 +38,18 @@ cd linkedin-mcp
 
 # 2. Run the automated installer
 ./install.sh
+
+# Or install and immediately launch the Web Dashboard:
+./install.sh --ui
 ```
 
 The installer will:
-1. Create a isolated `.venv` virtual environment.
+1. Create an isolated `.venv` virtual environment.
 2. Install all dependencies and the package in editable mode.
 3. Automatically register the server globally in `~/.gemini/config/mcp_config.json`.
-4. Create a local `.env` file from `.env.example`.
+4. Create global CLI shortcuts: `linkedin-ui` and `linkedin-jobs` in `~/.local/bin`.
+5. Create a local `.env` file from `.env.example`.
+6. Prompt (or launch via `--ui`) the Web Dashboard at `http://127.0.0.1:8000`.
 
 ### Also Enable for Claude Code CLI
 
@@ -53,6 +58,7 @@ If you also use Claude Code CLI, pass the `--claude` flag:
 ```bash
 ./install.sh --claude
 ```
+
 
 ---
 

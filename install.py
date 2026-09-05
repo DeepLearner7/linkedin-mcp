@@ -259,6 +259,8 @@ def main():
     parser.add_argument("--uninstall", action="store_true", help="Completely uninstall, remove registrations, venv, and database")
     parser.add_argument("--purge-all", action="store_true", help="Also delete browser session.json when uninstalling")
     parser.add_argument("--claude", action="store_true", help="Also register in Claude Code ~/.claude.json")
+    parser.add_argument("--ui", action="store_true", help="Automatically launch the Web UI after installation")
+    parser.add_argument("--no-ui", action="store_true", help="Skip launching the Web UI without prompting")
     args = parser.parse_args()
 
     if args.uninstall:
@@ -288,6 +290,29 @@ def main():
     print("  • linkedin-jobs : Automated job pipeline & report generator")
     print("--------------------------------------------------")
 
+    # Option 1: Launch UI flag or interactive prompt
+    should_launch_ui = args.ui
+    if not args.ui and not args.no_ui and sys.stdin.isatty():
+        try:
+            ans = input("\nWould you like to launch the Web Dashboard now? [Y/n]: ").strip().lower()
+            if ans in ("", "y", "yes"):
+                should_launch_ui = True
+        except (KeyboardInterrupt, EOFError):
+            should_launch_ui = False
+
+    if should_launch_ui:
+        print("\n==================================================")
+        print("🚀 Launching LinkedIn Career Intelligence UI...")
+        print("👉 Opening: http://127.0.0.1:8000")
+        print("   (Press Ctrl+C in this terminal to stop the server)")
+        print("==================================================\n")
+        cmd = [str(UI_CLI_EXE)] if UI_CLI_EXE.exists() else [str(PYTHON_EXE), "-m", "linkedin_mcp.ui.server"]
+        try:
+            subprocess.run(cmd)
+        except KeyboardInterrupt:
+            print("\nWeb UI stopped.")
+
 
 if __name__ == "__main__":
     main()
+
