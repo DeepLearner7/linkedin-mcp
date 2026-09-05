@@ -22,11 +22,12 @@ DEFAULT_PROFILE = (
 DEFAULT_SETTINGS: Dict[str, Any] = {
     "llm_provider": "gemini",
     "gemini_api_key": "",
-    "gemini_model": "gemini-1.5-flash",
+    "gemini_model": "gemini-3.6-flash",
     "ollama_url": "http://localhost:11434",
     "ollama_model": "llama3.1",
     "user_profile": DEFAULT_PROFILE,
 }
+
 
 
 def load_settings() -> Dict[str, Any]:

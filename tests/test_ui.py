@@ -81,17 +81,19 @@ async def test_ui_settings_get_and_post():
 
 @pytest.mark.asyncio
 async def test_ui_chat_no_key_graceful_handling():
+    from unittest.mock import patch
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.post("/api/ai/chat", json={
-            "message": "Draft a recruiter outreach note.",
-            "target_job_id": "all"
-        })
-        assert resp.status_code == 200
-        data = resp.json()
-        assert "reply" in data
-        # If no key set, should provide friendly instruction instead of 500 error
-        assert len(data["reply"]) > 0
+    with patch("linkedin_mcp.ai.client.load_settings", return_value={"llm_provider": "gemini", "gemini_api_key": ""}):
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post("/api/ai/chat", json={
+                "message": "Draft a recruiter outreach note.",
+                "target_job_id": "all"
+            })
+            assert resp.status_code == 200
+            data = resp.json()
+            assert "reply" in data
+            assert "Gemini API Key Needed" in data["reply"]
+
 
 
 @pytest.mark.asyncio

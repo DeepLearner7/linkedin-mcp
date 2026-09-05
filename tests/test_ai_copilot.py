@@ -23,8 +23,9 @@ def test_settings_load_and_save(tmp_path):
         # Initial load defaults
         cfg = load_settings()
         assert cfg["llm_provider"] == "gemini"
-        assert cfg["gemini_model"] == "gemini-1.5-flash"
+        assert cfg["gemini_model"] == "gemini-3.6-flash"
         assert "Lead / Senior Data Engineer" in cfg["user_profile"]
+
 
         # Save updates
         save_settings({

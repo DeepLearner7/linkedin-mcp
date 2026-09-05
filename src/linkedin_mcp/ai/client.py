@@ -52,7 +52,10 @@ class LLMClient:
                 "👉 Get your free API key at [Google AI Studio](https://aistudio.google.com/)."
             )
 
-        model_name = self.settings.get("gemini_model", "gemini-1.5-flash")
+        model_name = self.settings.get("gemini_model", "gemini-3.6-flash")
+        # Automatically upgrade legacy/deprecated model names
+        if any(model_name.startswith(p) for p in ["gemini-1.5", "gemini-2.0", "gemini-2.5", "gemini-flash-latest"]):
+            model_name = "gemini-3.6-flash"
 
         try:
             from google import genai
@@ -75,7 +78,21 @@ class LLMClient:
 
         except Exception as e:
             err_msg = str(e)
-            logger.error(f"Gemini generation error: {err_msg}", exc_info=True)
+            logger.error(f"Gemini generation error with model {model_name}: {err_msg}")
+
+            # If model was rejected as deprecated or not found, try fallback to gemini-3.6-flash
+            if ("404" in err_msg or "not found" in err_msg.lower() or "no longer available" in err_msg.lower()) and model_name != "gemini-3.6-flash":
+                try:
+                    logger.info("Falling back to gemini-3.6-flash...")
+                    response = await client.aio.models.generate_content(
+                        model="gemini-3.6-flash",
+                        contents=prompt,
+                        config=config,
+                    )
+                    return response.text or "*(No response received from Gemini)*"
+                except Exception as fallback_err:
+                    err_msg = str(fallback_err)
+
             if "API_KEY_INVALID" in err_msg or "400" in err_msg and "API key" in err_msg:
                 return (
                     "❌ **Invalid Gemini API Key**\n\n"
@@ -83,6 +100,7 @@ class LLMClient:
                     "Please verify your key in the **Settings** tab."
                 )
             return f"❌ **Gemini Error:** {err_msg}"
+
 
     async def _generate_ollama(
         self,
